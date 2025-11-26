@@ -240,31 +240,48 @@
             position: relative;
         }
 
-        /* 原子动画背景 */
+/* --- 原子动画背景 (升级版) --- */
         .atom-stage {
-            height: 160px;
+            height: 180px; /* 稍微调高一点以便容纳大原子 */
             background: radial-gradient(circle at center, #1e293b, #000);
             position: relative;
             display: flex; justify-content: center; align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden; /* 防止大原子溢出 */
         }
         
         .orbit {
             position: absolute; 
             border: 1px solid rgba(255,255,255,0.1); 
             border-radius: 50%;
-            animation: spin linear infinite;
+            /* 动画定义移到JS里动态控制方向 */
         }
+
         .nucleus {
-            width: 18px; height: 18px; border-radius: 50%;
-            background: #fff; box-shadow: 0 0 20px #fff; z-index: 10;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #fff; box-shadow: 0 0 15px #fff; z-index: 10;
+            position: absolute;
         }
+
+        /* 新增：用于旋转定位的容器 */
+        .electron-pos {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        /* 电子本体 */
         .electron {
-            width: 8px; height: 8px; border-radius: 50%;
-            position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
-            box-shadow: 0 0 8px currentColor;
+            width: 6px; height: 6px; border-radius: 50%;
+            position: absolute; 
+            top: -3px; /* 让电子正好压在轨道线上 */
+            left: 50%; 
+            transform: translateX(-50%);
+            box-shadow: 0 0 5px currentColor;
         }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        @keyframes spinCW { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spinCCW { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
 
         .modal-body { padding: 25px; }
         
@@ -639,36 +656,60 @@
         modal.classList.add('active');
     }
 
+// 真实的玻尔模型电子排布动画
     function createAtomAnim(num, color) {
         const container = document.getElementById('atomVis');
-        container.querySelectorAll('.orbit').forEach(o => o.remove());
+        // 清空旧的（保留原子核如果不在这里重建的话，但这里我们重建所有）
+        container.innerHTML = '<div class="nucleus"></div>';
+        
+        // 电子层最大容量规则 (K, L, M, N, O, P, Q)
+        const shellCapacities = [2, 8, 18, 32, 32, 18, 8];
+        
+        let remainingElectrons = num;
+        let size = 40; // 第一层直径
 
-        const shells = [2, 8, 18, 32, 32, 18, 8]; 
-        let remaining = num;
-        let size = 50;
+        for (let i = 0; i < shellCapacities.length; i++) {
+            if (remainingElectrons <= 0) break;
 
-        for (let i = 0; i < shells.length; i++) {
-            if (remaining <= 0) break;
-            const count = Math.min(remaining, shells[i]);
-            remaining -= count;
-            
+            // 计算这一层有多少个电子
+            // 比如镁(12): 第1层取2(剩10), 第2层取8(剩2), 第3层取2(剩0)
+            const countInShell = Math.min(remainingElectrons, shellCapacities[i]);
+            remainingElectrons -= countInShell;
+
+            // 创建轨道圈
             const orbit = document.createElement('div');
             orbit.className = 'orbit';
             orbit.style.width = `${size}px`;
             orbit.style.height = `${size}px`;
-            orbit.style.animationDuration = `${4 + i}s`;
-            orbit.style.borderColor = color;
-            orbit.style.opacity = 0.6;
-
-            // 在轨道上添加电子
-            const electron = document.createElement('div');
-            electron.className = 'electron';
-            electron.style.background = color;
-            electron.style.color = color; //用于box-shadow
             
-            orbit.appendChild(electron);
+            // 动感优化：奇数层顺时针，偶数层逆时针，外层转得慢
+            const speed = 3 + i * 1.5; 
+            const animName = i % 2 === 0 ? 'spinCW' : 'spinCCW';
+            orbit.style.animation = `${animName} ${speed}s linear infinite`;
+            orbit.style.borderColor = `rgba(255,255,255,0.15)`;
+
+            // 在当前轨道上生成每一个电子
+            for (let j = 0; j < countInShell; j++) {
+                // 创建一个全尺寸的透明容器，旋转它来定位电子
+                const posContainer = document.createElement('div');
+                posContainer.className = 'electron-pos';
+                
+                // 计算角度：例如8个电子，每个间隔 360/8 = 45度
+                const angle = (360 / countInShell) * j;
+                posContainer.style.transform = `rotate(${angle}deg)`;
+
+                // 电子本体
+                const electron = document.createElement('div');
+                electron.className = 'electron';
+                electron.style.background = color;
+                electron.style.color = color; // 传给 box-shadow 使用 currentColor
+
+                posContainer.appendChild(electron);
+                orbit.appendChild(posContainer);
+            }
+
             container.appendChild(orbit);
-            size += 35;
+            size += 30; // 下一层轨道直径变大
         }
     }
 
