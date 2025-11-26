@@ -147,70 +147,112 @@
         }
         @media (min-width: 1200px) { .table-wrapper { justify-content: center; } }
 
+/* --- 周期表网格 (升级：增加行列标号) --- */
         .periodic-table {
             display: grid;
-            grid-template-columns: repeat(18, 60px); /* 稍微加大一点格子 */
-            grid-template-rows: repeat(10, 60px);
+            /* 改为 19列 (第1列是行号) x 11行 (第1行是列号) */
+            grid-template-columns: 30px repeat(18, 60px); 
+            grid-template-rows: 30px repeat(10, 60px);
             gap: 6px;
             flex-shrink: 0;
+            padding-bottom: 20px;
         }
 
-        /* --- 元素卡片 (玻璃拟态) --- */
+        /* 坐标标号样式 */
+        .col-label, .row-label {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 12px;
+            font-family: monospace;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        /* --- 元素卡片 (布局修复版) --- */
         .element {
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 8px;
+            border-radius: 6px;
+            /* 关键：使用 padding-bottom 留出颜色条的位置 */
+            padding: 4px 4px 6px 4px; 
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 4px 6px;
+            align-items: center;
+            position: relative; /* 关键 */
             cursor: pointer;
-            position: relative;
             user-select: none;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             backdrop-filter: blur(4px);
+            overflow: hidden; /* 防止光效溢出 */
         }
 
-        /* 悬停与高亮逻辑 */
-        .periodic-table:hover .element {
-            opacity: 0.5; /* 非聚焦元素变半透明，而不是全黑 */
-            filter: grayscale(0.6);
-            transform: scale(0.98);
-        }
-        
-        .periodic-table .element:hover,
-        .periodic-table .element.highlight-active {
-            opacity: 1;
-            filter: grayscale(0);
-            transform: scale(1.25) translateY(-5px); /* 上浮效果 */
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255,255,255,0.8);
+        /* 悬停效果保持不变，省略部分代码... */
+        .periodic-table:hover .element { opacity: 0.5; filter: grayscale(0.6); transform: scale(0.98); }
+        .periodic-table .element:hover, 
+        .periodic-table .element.highlight-active { 
+            opacity: 1; filter: grayscale(0); transform: scale(1.25) translateY(-5px); z-index: 100;
+            background: rgba(255, 255, 255, 0.15); border-color: rgba(255,255,255,0.8);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.05);
         }
+        .periodic-table .element.highlight-cross { opacity: 1; filter: grayscale(0); transform: scale(1.05); background: rgba(255, 255, 255, 0.1); z-index: 10; }
+
+        /* 元素内容布局调整 */
+        .at-num { 
+            font-size: 9px; 
+            color: var(--text-secondary); 
+            width: 100%; 
+            text-align: left; 
+            line-height: 1;
+        }
         
-        /* 准星高亮（同族/同周期） */
-        .periodic-table .element.highlight-cross {
-            opacity: 1;
-            filter: grayscale(0);
-            transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.1);
-            z-index: 10;
+        .symbol { 
+            font-size: 18px; 
+            font-weight: 800; 
+            text-align: center; 
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            /* 关键：让符号占据中间所有空余空间，从而上下居中 */
+            flex: 1; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1px;
+        }
+        
+        .name { 
+            font-size: 10px; 
+            text-align: center; 
+            white-space: nowrap; 
+            opacity: 0.9; 
+            width: 100%; 
+            line-height: 1.2;
+            z-index: 2; /* 确保文字在颜色条上方 */
+            margin-bottom: 2px; /* 稍微抬高一点 */
         }
 
-        /* 元素内容 */
-        .at-num { font-size: 10px; color: var(--text-secondary); align-self: flex-start; }
-        .symbol { font-size: 20px; font-weight: 800; text-align: center; margin: -2px 0; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .name { font-size: 10px; text-align: center; white-space: nowrap; opacity: 0.9; width: 100%; overflow: hidden;}
-
-        /* 底部彩色条 */
+        /* 底部彩色条 (改为绝对定位) */
         .cat-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
             height: 3px;
             width: 100%;
-            border-radius: 2px;
-            margin-top: 2px;
-            box-shadow: 0 0 8px currentColor; /* 发光效果 */
+            border-radius: 0 0 6px 6px; /* 贴合卡片底部圆角 */
+            box-shadow: 0 -1px 4px currentColor; /* 向上发光 */
+            opacity: 0.8;
         }
+
+        /* --- 无结果提示 --- */
+        .no-result-tip {
+            position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+            display: none; /* 默认隐藏 */
+            pointer-events: none;
+        }
+        .no-result-tip div { font-size: 40px; margin-bottom: 10px; }
 
         /* 占位符 */
         .placeholder {
@@ -311,7 +353,69 @@
             transition: 0.2s;
         }
         .close-btn:hover { background: rgba(255,255,255,0.25); transform: rotate(90deg); }
+/* === 升级：霓虹筛选芯片栏 === */
+/* === 修复：筛选栏自动换行 (多行显示) === */
+    .filter-scroll {
+        display: flex;
+        flex-wrap: wrap;       /* 关键：允许换行 */
+        justify-content: center; /* 居中对齐 */
+        gap: 8px;              /* 间距稍微调小一点，更紧凑 */
+        padding: 10px 0;
+        width: 100%;
+    }
+    
+    /* 调整芯片样式，使其在多行时更整齐 */
+    .filter-chip {
+        flex: 0 0 auto;
+        padding: 6px 12px;     /* 稍微改小一点点 padding */
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.05);
+        color: var(--text-secondary);
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        user-select: none;
+    }
+    .filter-chip:hover { background: rgba(255,255,255,0.15); transform: translateY(-1px); }
+    
+    .filter-chip.active {
+        background: #1e293b;
+        color: #fff;
+        border-color: currentColor;
+        box-shadow: 0 0 10px currentColor; /* 发光增强 */
+        font-weight: bold;
+    }
 
+    .chip-dot { width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; }
+
+    /* === 维基百科按钮样式 (确保它显眼) === */
+    .btn-wiki {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #3742fa 0%, #0984e3 100%); /* 鲜艳的蓝色渐变 */
+        border-radius: 12px;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        box-shadow: 0 4px 15px rgba(55, 66, 250, 0.3);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-wiki:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(55, 66, 250, 0.5);
+    }
+    .btn-wiki:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -323,26 +427,16 @@
         <h1>ELEMENTS PRO</h1>
     </header>
 
-    <div class="controls">
-        <div class="input-group">
-            <input type="text" id="searchInput" placeholder="🔍 搜索元素 (金, Au, 79)...">
-        </div>
-        <div class="input-group">
-            <select id="categoryFilter">
-                <option value="all">🌈 所有分类</option>
-                <option value="alkali">🔴 碱金属</option>
-                <option value="alkaline">🟠 碱土金属</option>
-                <option value="transition">🟡 过渡金属</option>
-                <option value="post-trans">🌑 贫金属</option>
-                <option value="metalloid">🟢 类金属</option>
-                <option value="nonmetal">🔵 非金属</option>
-                <option value="halogen">🟣 卤素</option>
-                <option value="noble">🌌 稀有气体</option>
-                <option value="lanthanoid">🌸 镧系</option>
-                <option value="actinoid">☢️ 锕系</option>
-            </select>
+<div class="controls">
+        <div class="input-group" style="flex: 1; min-width: 200px;">
+            <input type="text" id="searchInput" placeholder="🔍 搜索 (如: 铁, Fe, 26)...">
         </div>
         <button class="btn-random" onclick="pickRandom()">🎲 探索</button>
+        
+        <!-- 这里变成了横向滑动的芯片栏 -->
+        <div class="filter-scroll" id="filterContainer">
+            <!-- JS 会自动在这里生成带颜色的标签 -->
+        </div>
     </div>
 
     <div class="table-wrapper">
@@ -533,8 +627,8 @@
         [118,"Og","鿫","Oganesson","294","noble","unknown","2002","目前人类合成的最重的元素！以俄罗斯科学家奥加涅相命名。它可能不是气体，而是固态的“稀有气体”。"]
     ];
 
-    // ==========================================
-    // 逻辑区域
+// ==========================================
+    // 逻辑区域 (升级版)
     // ==========================================
 
     const elements = rawData.map(d => ({
@@ -551,31 +645,108 @@
 
     const tableGrid = document.getElementById('tableGrid');
     const modal = document.getElementById('modal');
+    const filterContainer = document.getElementById('filterContainer');
+    let activeCategory = 'all'; // 当前选中的分类
 
-    function getPos(n) {
-        if (n >= 57 && n <= 71) return { row: 9, col: n - 57 + 4 };
-        if (n >= 89 && n <= 103) return { row: 10, col: n - 89 + 4 };
-        if (n === 1) return { row: 1, col: 1 };
-        if (n === 2) return { row: 1, col: 18 };
-        if (n <= 4) return { row: 2, col: n - 2 };
-        if (n <= 10) return { row: 2, col: n + 8 };
-        if (n <= 12) return { row: 3, col: n - 10 };
-        if (n <= 18) return { row: 3, col: n };
-        if (n <= 36) return { row: 4, col: n - 18 };
-        if (n <= 54) return { row: 5, col: n - 36 };
-        if (n <= 56) return { row: 6, col: n - 54 };
-        if (n <= 86) return { row: 6, col: n - 72 + 4 };
-        if (n <= 88) return { row: 7, col: n - 86 };
-        return { row: 7, col: n - 104 + 4 };
+    // 1. 初始化筛选芯片 (替代丑陋的 Select)
+    function initFilters() {
+        // 添加"全部"按钮
+        const allBtn = createChip('all', '🌈 全部', '#fff');
+        allBtn.classList.add('active'); // 默认选中
+        filterContainer.appendChild(allBtn);
+
+        // 遍历生成其他分类按钮
+        for (const [key, label] of Object.entries(categories)) {
+            // 从 CSS 变量中获取颜色 (需要一点技巧，这里简单映射)
+            // 为了简单，我们直接用JS对象存颜色，与CSS保持一致
+            const colorMap = {
+                'alkali': '#ff6b6b', 'alkaline': '#ffa502', 'transition': '#eccc68',
+                'post-trans': '#ff7f50', 'metalloid': '#2ed573', 'nonmetal': '#1e90ff',
+                'halogen': '#3742fa', 'noble': '#a55eea', 'lanthanoid': '#ff9ff3',
+                'actinoid': '#f368e0', 'unknown': '#a4b0be'
+            };
+            filterContainer.appendChild(createChip(key, label, colorMap[key]));
+        }
     }
 
+    function createChip(key, label, color) {
+        const btn = document.createElement('div');
+        btn.className = 'filter-chip';
+        btn.innerHTML = `<div class="chip-dot" style="background:${color}; box-shadow: 0 0 5px ${color}"></div>${label}`;
+        btn.onclick = () => {
+            // 切换选中状态
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // 设置当前发光色
+            btn.style.color = color; 
+            if(key === 'all') btn.style.color = '#fff';
+
+            activeCategory = key;
+            filter();
+        };
+        return btn;
+    }
+
+// 2. 坐标计算 (升级：整体偏移 +1，为坐标轴留位置)
+    function getPos(n) {
+        // 基础偏移量：第一行和第一列留给坐标
+        const OFFSET_R = 1; 
+        const OFFSET_C = 1;
+
+        let r, c;
+        if (n >= 57 && n <= 71) { r = 9; c = n - 57 + 4; }
+        else if (n >= 89 && n <= 103) { r = 10; c = n - 89 + 4; }
+        else if (n === 1) { r = 1; c = 1; }
+        else if (n === 2) { r = 1; c = 18; }
+        else if (n <= 4) { r = 2; c = n - 2; }
+        else if (n <= 10) { r = 2; c = n + 8; }
+        else if (n <= 12) { r = 3; c = n - 10; }
+        else if (n <= 18) { r = 3; c = n; }
+        else if (n <= 36) { r = 4; c = n - 18; }
+        else if (n <= 54) { r = 5; c = n - 36; }
+        else if (n <= 56) { r = 6; c = n - 54; }
+        else if (n <= 86) { r = 6; c = n - 72 + 4; }
+        else if (n <= 88) { r = 7; c = n - 86; }
+        else { r = 7; c = n - 104 + 4; }
+
+        return { row: r + OFFSET_R, col: c + OFFSET_C };
+    }
+
+    // 3. 渲染主表 (包含坐标轴)
     function render() {
-        // 保留占位符
         tableGrid.innerHTML = `
-            <div class="placeholder" style="grid-column: 3; grid-row: 6;">57-71</div>
-            <div class="placeholder" style="grid-column: 3; grid-row: 7;">89-103</div>
+            <!-- 占位符 (坐标也需要偏移) -->
+            <div class="placeholder" style="grid-column: 4; grid-row: 7;">57-71</div>
+            <div class="placeholder" style="grid-column: 4; grid-row: 8;">89-103</div>
+            <!-- 无结果提示 -->
+            <div class="no-result-tip" id="noResult">
+                <div>😕</div>
+                <span>没有找到相关元素</span>
+            </div>
         `;
 
+        // --- 生成坐标轴 ---
+        // 1. 列标号 (1-18)
+        for(let i=1; i<=18; i++) {
+            const label = document.createElement('div');
+            label.className = 'col-label';
+            label.textContent = i;
+            label.style.gridRow = 1;
+            label.style.gridColumn = i + 1; // 偏移1
+            tableGrid.appendChild(label);
+        }
+        // 2. 行标号 (1-7)
+        for(let i=1; i<=7; i++) {
+            const label = document.createElement('div');
+            label.className = 'row-label';
+            label.textContent = i;
+            label.style.gridColumn = 1;
+            label.style.gridRow = i + 1; // 偏移1
+            tableGrid.appendChild(label);
+        }
+
+        // --- 生成元素 ---
         elements.forEach(el => {
             const pos = getPos(el.number);
             const div = document.createElement('div');
@@ -583,19 +754,21 @@
             div.style.gridColumn = pos.col;
             div.style.gridRow = pos.row;
             
-            div.dataset.col = pos.col;
-            div.dataset.row = pos.row;
+            // 修正：存储原始的 row/col 用于高亮，减去偏移量
+            div.dataset.col = pos.col; 
+            div.dataset.row = pos.row; 
             div.dataset.cat = el.category;
             div.dataset.search = (el.name + el.symbol + el.number + el.nameEn).toLowerCase();
 
-            // 颜色
             const color = `var(--c-${el.category})`;
 
+            // 注意：这里移除了 .cat-bar 的 style="background:..."，改用 CSS 类控制位置，
+            // 但颜色依然需要内联样式，只是结构变了
             div.innerHTML = `
                 <span class="at-num">${el.number}</span>
                 <span class="symbol" style="color:${color}">${el.symbol}</span>
                 <span class="name">${el.name}</span>
-                <div class="cat-bar" style="background:${color}; color:${color}"></div>
+                <div class="cat-bar" style="background:${color}; box-shadow: 0 -2px 6px ${color}"></div>
             `;
 
             div.onclick = () => openModal(el);
@@ -606,37 +779,50 @@
         });
     }
 
-    // 优化的十字高亮：不把其他的变全黑，而是变暗
+    // 4. 辅助高亮
     function highlightCrosshair(col, row) {
-        if(window.innerWidth < 768) return; // 手机上禁用悬停逻辑防止误触
-
-        const els = document.querySelectorAll('.element');
-        els.forEach(el => {
+        if(window.innerWidth < 768) return; 
+        document.querySelectorAll('.element').forEach(el => {
             const eCol = parseInt(el.dataset.col);
             const eRow = parseInt(el.dataset.row);
-            
-            // 如果是同组或同周期，添加 active 类
-            if (eCol === col || eRow === row) {
-                el.classList.add('highlight-cross');
-            } else {
-                el.classList.remove('highlight-cross');
-            }
+            if (eCol === col || eRow === row) el.classList.add('highlight-cross');
+            else el.classList.remove('highlight-cross');
         });
     }
 
     function clearHighlight() {
-        document.querySelectorAll('.element').forEach(el => {
-            el.classList.remove('highlight-cross');
-        });
+        document.querySelectorAll('.element').forEach(el => el.classList.remove('highlight-cross'));
     }
 
+    // 5. 核心算法：生成电子排布式文本 (e.g., 1s2 2s2...)
+    // 这是一个简化版的构造原理算法，足够覆盖大部分主族元素
+    function getElectronConfigStr(num) {
+        const orbitals = ["1s", "2s", "2p", "3s", "3p", "4s", "3d", "4p", "5s", "4d", "5p", "6s", "4f", "5d", "6p", "7s", "5f", "6d", "7p"];
+        const capacities = [2, 2, 6, 2, 6, 2, 10, 6, 2, 10, 6, 2, 14, 10, 6, 2, 14, 10, 6];
+        
+        let remaining = num;
+        let config = [];
+        
+        for (let i = 0; i < orbitals.length; i++) {
+            if (remaining <= 0) break;
+            const count = Math.min(remaining, capacities[i]);
+            config.push(`${orbitals[i]}<sup>${count}</sup>`);
+            remaining -= count;
+        }
+        
+        // 简化：如果太长，只显示最后几项，前面用 [Noble] 代替 (此处暂显示完整版，更有科技感)
+        return config.join(" ");
+    }
+
+// 6. 弹窗逻辑 (包含电子排布式 + 维基百科按钮)
     function openModal(el) {
         const color = `var(--c-${el.category})`;
         
+        // 1. 设置头部信息
         document.getElementById('m-symbol').textContent = el.symbol;
         document.getElementById('m-symbol').style.color = color;
         
-        document.getElementById('m-name').textContent = `${el.name}`;
+        document.getElementById('m-name').textContent = `${el.name} (${el.nameEn})`; // 加上英文名
         document.getElementById('m-cat').textContent = categories[el.category];
         document.getElementById('m-cat').style.color = color;
         
@@ -647,95 +833,90 @@
         const stateMap = { 'solid': '固体', 'liquid': '液体', 'gas': '气体', 'unknown': '未知' };
         document.getElementById('m-state').textContent = stateMap[el.state];
         
-        // 弹窗描述背景色微调
+        // 2. 核心：生成简介、排布式和维基百科按钮
         const descBox = document.getElementById('m-desc');
-        descBox.textContent = el.desc;
+        const configStr = getElectronConfigStr(el.number);
+        
+        // 注意：这里使用了 innerHTML 注入按钮
+        descBox.innerHTML = `
+            <div style="margin-bottom:12px; font-family:'Courier New', monospace; color:${color}; background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; font-size:12px;">
+                ⚛️ 电子排布: ${configStr}
+            </div>
+            <div style="line-height:1.6; margin-bottom:15px;">
+                ${el.desc}
+            </div>
+            <a href="https://zh.wikipedia.org/wiki/${el.name}" target="_blank" class="btn-wiki">
+                📖 维基百科：${el.name}
+            </a>
+        `;
         descBox.style.borderLeftColor = color;
 
+        // 3. 启动原子动画
         createAtomAnim(el.number, color);
+        
+        // 4. 显示弹窗
         modal.classList.add('active');
     }
 
-// 真实的玻尔模型电子排布动画
+    // 7. 真实电子云动画 (前面已经给过，确保这里包含)
     function createAtomAnim(num, color) {
         const container = document.getElementById('atomVis');
-        // 清空旧的（保留原子核如果不在这里重建的话，但这里我们重建所有）
         container.innerHTML = '<div class="nucleus"></div>';
-        
-        // 电子层最大容量规则 (K, L, M, N, O, P, Q)
         const shellCapacities = [2, 8, 18, 32, 32, 18, 8];
-        
         let remainingElectrons = num;
-        let size = 40; // 第一层直径
-
+        let size = 40;
         for (let i = 0; i < shellCapacities.length; i++) {
             if (remainingElectrons <= 0) break;
-
-            // 计算这一层有多少个电子
-            // 比如镁(12): 第1层取2(剩10), 第2层取8(剩2), 第3层取2(剩0)
             const countInShell = Math.min(remainingElectrons, shellCapacities[i]);
             remainingElectrons -= countInShell;
-
-            // 创建轨道圈
             const orbit = document.createElement('div');
             orbit.className = 'orbit';
             orbit.style.width = `${size}px`;
             orbit.style.height = `${size}px`;
-            
-            // 动感优化：奇数层顺时针，偶数层逆时针，外层转得慢
             const speed = 3 + i * 1.5; 
             const animName = i % 2 === 0 ? 'spinCW' : 'spinCCW';
             orbit.style.animation = `${animName} ${speed}s linear infinite`;
             orbit.style.borderColor = `rgba(255,255,255,0.15)`;
-
-            // 在当前轨道上生成每一个电子
             for (let j = 0; j < countInShell; j++) {
-                // 创建一个全尺寸的透明容器，旋转它来定位电子
                 const posContainer = document.createElement('div');
                 posContainer.className = 'electron-pos';
-                
-                // 计算角度：例如8个电子，每个间隔 360/8 = 45度
                 const angle = (360 / countInShell) * j;
                 posContainer.style.transform = `rotate(${angle}deg)`;
-
-                // 电子本体
                 const electron = document.createElement('div');
                 electron.className = 'electron';
                 electron.style.background = color;
-                electron.style.color = color; // 传给 box-shadow 使用 currentColor
-
+                electron.style.color = color;
                 posContainer.appendChild(electron);
                 orbit.appendChild(posContainer);
             }
-
             container.appendChild(orbit);
-            size += 30; // 下一层轨道直径变大
+            size += 30;
         }
     }
 
-    function closeModal() { modal.classList.remove('active'); }
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-
+    // 8. 筛选逻辑 (增加无结果反馈)
     function filter() {
         const text = document.getElementById('searchInput').value.toLowerCase();
-        const cat = document.getElementById('categoryFilter').value;
-        
-        document.querySelectorAll('.element').forEach(el => {
+        const els = document.querySelectorAll('.element');
+        let hasResult = false;
+
+        els.forEach(el => {
             const matchText = el.dataset.search.includes(text);
-            const matchCat = cat === 'all' || el.dataset.cat === cat;
+            const matchCat = activeCategory === 'all' || el.dataset.cat === activeCategory;
             
             if (matchText && matchCat) {
-                el.style.display = 'flex'; // 显示
-                setTimeout(() => {
-                    el.style.opacity = '1';
-                    el.style.transform = 'scale(1)';
-                }, 10);
+                el.style.display = 'flex';
+                setTimeout(() => { el.style.opacity = '1'; el.style.transform = 'scale(1)'; }, 10);
+                hasResult = true;
             } else {
                 el.style.opacity = '0.1';
                 el.style.transform = 'scale(0.8)';
-                // 不使用 display:none 以保持网格结构，仅视觉隐藏
             }
         });
+
+        // 显示/隐藏无结果提示
+        const tip = document.getElementById('noResult');
+        tip.style.display = hasResult ? 'none' : 'block';
     }
 
     function pickRandom() {
@@ -743,9 +924,12 @@
         openModal(randomEl);
     }
 
-    document.getElementById('searchInput').addEventListener('input', filter);
-    document.getElementById('categoryFilter').addEventListener('change', filter);
+    function closeModal() { modal.classList.remove('active'); }
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
+    // 初始化运行
+    document.getElementById('searchInput').addEventListener('input', filter);
+    initFilters(); // 初始化新的标签栏
     render();
 
 </script>
