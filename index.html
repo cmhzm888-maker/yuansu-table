@@ -427,6 +427,117 @@
         box-shadow: 0 6px 20px rgba(55, 66, 250, 0.5);
     }
     .btn-wiki:active { transform: scale(0.98); }
+/* =========================================
+       📱 移动端专属优化：图鉴列表模式 (Pokedex Mode)
+       当屏幕宽度小于 768px (手机/iPad竖屏) 时生效
+       ========================================= */
+    @media (max-width: 768px) {
+        
+        /* 1. 隐藏多余的装饰和坐标轴，减少干扰 */
+        .col-label, .row-label, .placeholder, .no-result-tip {
+            display: none !important;
+        }
+
+        /* 2. 容器改为垂直流布局 */
+        .table-wrapper {
+            display: block; /* 取消 flex，允许垂直滚动 */
+            padding: 10px 15px;
+            height: auto;
+            overflow-y: auto; /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止横向滚动 */
+        }
+
+        /* 3. 核心：把网格炸开，变成垂直列表 */
+        .periodic-table {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            height: auto;
+        }
+
+        /* 4. 重塑元素卡片：变身为“横幅数据条” */
+        .element {
+            /* 强制重置网格定位，让它们按顺序排列 */
+            grid-column: auto !important;
+            grid-row: auto !important;
+            
+            /* 布局改为横向 Flex */
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            
+            width: 100%;
+            height: 70px; /* 加高一点，更易点击 */
+            padding: 0 20px;
+            background: rgba(30, 41, 59, 0.6); /*稍微深一点的背景*/
+        }
+
+        /* 5. 调整内部元素的排版 */
+        
+        /* 颜色条变成左侧的竖线指示器 */
+        .cat-bar {
+            width: 5px;
+            height: 100%;
+            top: 0; left: 0; bottom: auto;
+            border-radius: 6px 0 0 6px;
+            box-shadow: none;
+        }
+
+        /* 原子序数：变大，放在左边 */
+        .at-num {
+            position: static; /* 取消绝对定位 */
+            width: 40px;
+            font-size: 16px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.3);
+            margin-right: 10px;
+        }
+
+        /* 符号：居中偏左 */
+        .symbol {
+            flex: 0 0 auto; /* 不伸缩 */
+            width: 50px;
+            font-size: 28px;
+            text-align: left;
+            margin: 0;
+            line-height: 1;
+        }
+
+        /* 名字：放在右边，字号加大 */
+        .name {
+            flex: 1; /* 占据剩余空间 */
+            text-align: left;
+            font-size: 16px;
+            margin: 0 0 0 15px;
+        }
+
+        /* 增加一个伪元素显示分类名称（可选，为了信息更丰富） */
+        .element::after {
+            content: attr(data-cat-cn); /* 读取 data-cat 属性 */
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        /* 6. 搜索框和筛选栏适配 */
+        .controls {
+            position: sticky; /* 吸顶 */
+            top: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 40;
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+        }
+        
+        h1 { font-size: 1.4rem; margin-top: 10px; }
+    }
     </style>
 </head>
 <body>
@@ -769,6 +880,8 @@
             div.dataset.col = pos.col; 
             div.dataset.row = pos.row; 
             div.dataset.cat = el.category;
+            // ▼▼▼ 新增这行，把中文分类名存进去，给手机端 CSS 用 ▼▼▼
+            div.dataset.catCn = categories[el.category];
             div.dataset.search = (el.name + el.symbol + el.number + el.nameEn).toLowerCase();
 
             const color = `var(--c-${el.category})`;
