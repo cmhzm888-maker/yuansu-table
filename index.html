@@ -2,559 +2,710 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全功能化学元素周期表 (118元素版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>未来派元素周期表 Pro</title>
     <style>
         :root {
-            --bg-color: #10141d; /* 深蓝黑背景 */
-            --text-color: #ecf0f1;
-            --card-bg: #1e2736;
-            --modal-bg: rgba(16, 20, 29, 0.95);
+            /* 整体提亮，使用深蓝/紫调代替纯黑 */
+            --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
             
-            /* 细分颜色分类 (参考图2风格) */
-            --c-alkali: #ff6b6b;       /* 碱金属 */
-            --c-alkaline: #ff9f43;     /* 碱土金属 */
-            --c-transition: #feca57;   /* 过渡金属 */
-            --c-post-trans: #fab1a0;   /* 贫金属/后过渡 */
-            --c-metalloid: #00d2d3;    /* 类金属 */
-            --c-nonmetal: #54a0ff;     /* 非金属 */
-            --c-halogen: #5f27cd;      /* 卤素 */
-            --c-noble: #c8d6e5;        /* 稀有气体 */
-            --c-lanthanoid: #ff9ff3;   /* 镧系 */
-            --c-actinoid: #9c88ff;     /* 锕系 */
-            --c-unknown: #576574;      /* 未知/其他 */
+            /* 卡片更亮，带有玻璃质感 */
+            --card-bg: rgba(255, 255, 255, 0.07);
+            --card-border: rgba(255, 255, 255, 0.15);
+            --card-hover: rgba(255, 255, 255, 0.15);
+            
+            /* 霓虹配色系统 (保持鲜艳) */
+            --c-alkali: #ff6b6b;
+            --c-alkaline: #ffa502;
+            --c-transition: #eccc68;
+            --c-post-trans: #ff7f50;
+            --c-metalloid: #2ed573;
+            --c-nonmetal: #1e90ff;
+            --c-halogen: #3742fa;
+            --c-noble: #a55eea;
+            --c-lanthanoid: #ff9ff3;
+            --c-actinoid: #f368e0;
+            --c-unknown: #a4b0be;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
-            font-family: 'Segoe UI', 'PingFang SC', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: 'Segoe UI', 'PingFang SC', system-ui, sans-serif;
+            background: #0f172a; /* 兜底色 */
+            color: var(--text-primary);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
         }
 
-        h1 { margin-bottom: 10px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-        .subtitle { color: #7f8c8d; margin-bottom: 30px; font-size: 0.9em; }
+        /* 动态背景层 */
+        .bg-anim {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1e293b, #020617);
+            z-index: -2;
+        }
+        .bg-glow {
+            position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, transparent 60%);
+            animation: rotateBg 20s linear infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+        @keyframes rotateBg { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* --- 头部区域 --- */
+        header {
+            width: 100%;
+            padding: 15px 20px;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 { 
+            margin: 0; 
+            font-size: 1.6rem; 
+            letter-spacing: 2px; 
+            background: linear-gradient(90deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+        
         /* --- 控制栏 --- */
         .controls {
             display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 12px;
+            padding: 20px;
             flex-wrap: wrap;
             justify-content: center;
-            background: #18202b;
-            padding: 15px 25px;
-            border-radius: 50px;
-            border: 1px solid #2c3e50;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 900px;
         }
 
-        input, select {
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: 1px solid #34495e;
-            background: #222f3e;
+        .input-group {
+            position: relative;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .input-group:focus-within {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        input, select, button {
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
             color: white;
             font-size: 14px;
             outline: none;
         }
-        input:focus { border-color: var(--c-nonmetal); }
+        
+        input { min-width: 200px; }
+        select { cursor: pointer; color: #cbd5e1; }
+        option { background: #1e293b; color: white; }
 
-        /* --- 周期表布局核心 --- */
-        .table-container {
-            max-width: 100%;
-            overflow-x: auto;
-            padding: 20px;
-            /* 居中滚动条内容 */
-            display: flex;
-            justify-content: center; 
+        .btn-random {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
         }
+        .btn-random:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4); }
+        .btn-random:active { transform: translateY(0); }
+
+        /* --- 周期表容器 --- */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding: 10px 20px 40px 20px;
+            display: flex;
+            justify-content: flex-start; 
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (min-width: 1200px) { .table-wrapper { justify-content: center; } }
 
         .periodic-table {
             display: grid;
-            grid-template-columns: repeat(18, 60px); /* 18列 */
-            grid-template-rows: repeat(10, 60px);    /* 7主行 + 间距 + 2副行 */
+            grid-template-columns: repeat(18, 60px); /* 稍微加大一点格子 */
+            grid-template-rows: repeat(10, 60px);
             gap: 6px;
-            position: relative;
+            flex-shrink: 0;
         }
 
-        /* 元素卡片样式 */
+        /* --- 元素卡片 (玻璃拟态) --- */
         .element {
-            background-color: #263042;
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 4px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            justify-content: space-between;
+            padding: 4px 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
             position: relative;
             user-select: none;
-            color: #eee;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(4px);
         }
 
-        .element:hover {
-            transform: scale(1.2);
+        /* 悬停与高亮逻辑 */
+        .periodic-table:hover .element {
+            opacity: 0.5; /* 非聚焦元素变半透明，而不是全黑 */
+            filter: grayscale(0.6);
+            transform: scale(0.98);
+        }
+        
+        .periodic-table .element:hover,
+        .periodic-table .element.highlight-active {
+            opacity: 1;
+            filter: grayscale(0);
+            transform: scale(1.25) translateY(-5px); /* 上浮效果 */
             z-index: 100;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            border: 1px solid #fff;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255,255,255,0.8);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.05);
         }
-
-        .element.dimmed { opacity: 0.15; filter: grayscale(0.8); pointer-events: none; }
+        
+        /* 准星高亮（同族/同周期） */
+        .periodic-table .element.highlight-cross {
+            opacity: 1;
+            filter: grayscale(0);
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
 
         /* 元素内容 */
-        .at-num { position: absolute; top: 4px; left: 4px; font-size: 9px; opacity: 0.7; }
-        .symbol { font-size: 18px; font-weight: 700; margin-top: 4px; }
-        .name { font-size: 10px; margin-top: 2px; opacity: 0.9; }
+        .at-num { font-size: 10px; color: var(--text-secondary); align-self: flex-start; }
+        .symbol { font-size: 20px; font-weight: 800; text-align: center; margin: -2px 0; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .name { font-size: 10px; text-align: center; white-space: nowrap; opacity: 0.9; width: 100%; overflow: hidden;}
 
-        /* 颜色分类定义 */
-        .cat-alkali { background: rgba(255, 107, 107, 0.15); border-bottom: 3px solid var(--c-alkali); color: var(--c-alkali); }
-        .cat-alkaline { background: rgba(255, 159, 67, 0.15); border-bottom: 3px solid var(--c-alkaline); color: var(--c-alkaline); }
-        .cat-transition { background: rgba(254, 202, 87, 0.15); border-bottom: 3px solid var(--c-transition); color: var(--c-transition); }
-        .cat-post-trans { background: rgba(250, 177, 160, 0.15); border-bottom: 3px solid var(--c-post-trans); color: var(--c-post-trans); }
-        .cat-metalloid { background: rgba(0, 210, 211, 0.15); border-bottom: 3px solid var(--c-metalloid); color: var(--c-metalloid); }
-        .cat-nonmetal { background: rgba(84, 160, 255, 0.15); border-bottom: 3px solid var(--c-nonmetal); color: var(--c-nonmetal); }
-        .cat-halogen { background: rgba(95, 39, 205, 0.15); border-bottom: 3px solid var(--c-halogen); color: var(--c-halogen); }
-        .cat-noble { background: rgba(200, 214, 229, 0.15); border-bottom: 3px solid var(--c-noble); color: var(--c-noble); }
-        .cat-lanthanoid { background: rgba(255, 159, 243, 0.15); border-bottom: 3px solid var(--c-lanthanoid); color: var(--c-lanthanoid); }
-        .cat-actinoid { background: rgba(156, 136, 255, 0.15); border-bottom: 3px solid var(--c-actinoid); color: var(--c-actinoid); }
-        .cat-unknown { background: rgba(87, 101, 116, 0.15); border-bottom: 3px solid var(--c-unknown); color: var(--c-unknown); }
-
-        /* 占位符样式 (57-71, 89-103) */
-        .placeholder {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 10px;
-            color: #555;
-            border: 1px dashed #444;
-            border-radius: 4px;
+        /* 底部彩色条 */
+        .cat-bar {
+            height: 3px;
+            width: 100%;
+            border-radius: 2px;
+            margin-top: 2px;
+            box-shadow: 0 0 8px currentColor; /* 发光效果 */
         }
 
-        /* --- 弹窗样式 --- */
+        /* 占位符 */
+        .placeholder {
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 11px; color: rgba(255,255,255,0.4);
+        }
+
+        /* --- 弹窗设计 (科技感) --- */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--modal-bg);
-            backdrop-filter: blur(5px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(15px);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; transition: opacity 0.3s;
         }
         .modal-overlay.active { display: flex; opacity: 1; }
 
         .modal-card {
-            background: #222f3e;
-            width: 90%; max-width: 600px;
-            border-radius: 12px;
-            padding: 0;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            background: rgba(30, 41, 59, 0.9);
+            width: 90%; max-width: 420px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05);
             overflow: hidden;
-            border: 1px solid #34495e;
+            position: relative;
         }
 
-        .modal-header {
-            padding: 30px;
-            display: flex;
-            align-items: center;
-            gap: 25px;
-            background: rgba(0,0,0,0.2);
-        }
-
-        .modal-symbol-box {
-            width: 80px; height: 80px;
+        /* 原子动画背景 */
+        .atom-stage {
+            height: 160px;
+            background: radial-gradient(circle at center, #1e293b, #000);
+            position: relative;
             display: flex; justify-content: center; align-items: center;
-            font-size: 40px; font-weight: bold;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.05);
-            border: 2px solid currentColor;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-
-        .modal-info { flex: 1; }
-        .modal-info h2 { margin: 0; font-size: 2em; color: #fff; }
-        .modal-info p { margin: 5px 0 0; color: #a4b0be; font-size: 1.1em; }
-
-        .modal-body { padding: 30px; }
-        .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px; }
-        .data-item label { display: block; color: #7f8c8d; font-size: 0.85em; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .data-item span { font-size: 1.1em; color: #ecf0f1; }
-
-        .modal-desc { background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; line-height: 1.6; color: #ced6e0; }
         
-        .close-btn {
-            position: absolute; top: 20px; right: 20px;
-            background: none; border: none; color: #7f8c8d;
-            font-size: 30px; cursor: pointer;
+        .orbit {
+            position: absolute; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 50%;
+            animation: spin linear infinite;
         }
-        .close-btn:hover { color: #fff; }
+        .nucleus {
+            width: 18px; height: 18px; border-radius: 50%;
+            background: #fff; box-shadow: 0 0 20px #fff; z-index: 10;
+        }
+        .electron {
+            width: 8px; height: 8px; border-radius: 50%;
+            position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+            box-shadow: 0 0 8px currentColor;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* 图例栏 */
-        .legend-bar {
-            display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
-            margin-top: 20px; max-width: 1000px;
+        .modal-body { padding: 25px; }
+        
+        .m-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
+        .m-symbol { font-size: 3.5rem; font-weight: 900; line-height: 1; filter: drop-shadow(0 0 10px rgba(255,255,255,0.3)); }
+        .m-title { text-align: right; }
+        .m-name { font-size: 1.4rem; margin: 0; color: #fff; }
+        .m-cat { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        .m-data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .m-data-item { background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; }
+        .m-label { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px; }
+        .m-val { font-size: 1.1rem; color: #fff; font-weight: 500; }
+
+        .m-desc { 
+            line-height: 1.6; color: #cbd5e1; font-size: 0.95rem; 
+            background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px;
+            border-left: 3px solid rgba(255,255,255,0.2);
         }
-        .legend-item {
-            font-size: 11px; padding: 4px 10px; border-radius: 15px;
-            background: #222; border: 1px solid #444; cursor: pointer;
-            display: flex; align-items: center; gap: 6px;
+
+        .close-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,0.1); color: white; border: none;
+            font-size: 20px; cursor: pointer; z-index: 20;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
         }
-        .legend-item:hover { background: #333; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .close-btn:hover { background: rgba(255,255,255,0.25); transform: rotate(90deg); }
 
     </style>
 </head>
 <body>
 
-    <h1>化学元素周期表</h1>
-    <div class="subtitle">包含 118 种元素的完整互动图表</div>
+    <div class="bg-anim"></div>
+    <div class="bg-glow"></div>
+
+    <header>
+        <h1>ELEMENTS PRO</h1>
+    </header>
 
     <div class="controls">
-        <input type="text" id="searchInput" placeholder="查找元素 (如: 铁, Fe, 26)...">
-        
-        <select id="categoryFilter">
-            <option value="all">全部分类</option>
-            <option value="alkali">碱金属</option>
-            <option value="alkaline">碱土金属</option>
-            <option value="transition">过渡金属</option>
-            <option value="post-trans">贫金属</option>
-            <option value="metalloid">类金属</option>
-            <option value="nonmetal">非金属</option>
-            <option value="halogen">卤素</option>
-            <option value="noble">稀有气体</option>
-            <option value="lanthanoid">镧系元素</option>
-            <option value="actinoid">锕系元素</option>
-        </select>
+        <div class="input-group">
+            <input type="text" id="searchInput" placeholder="🔍 搜索元素 (金, Au, 79)...">
+        </div>
+        <div class="input-group">
+            <select id="categoryFilter">
+                <option value="all">🌈 所有分类</option>
+                <option value="alkali">🔴 碱金属</option>
+                <option value="alkaline">🟠 碱土金属</option>
+                <option value="transition">🟡 过渡金属</option>
+                <option value="post-trans">🌑 贫金属</option>
+                <option value="metalloid">🟢 类金属</option>
+                <option value="nonmetal">🔵 非金属</option>
+                <option value="halogen">🟣 卤素</option>
+                <option value="noble">🌌 稀有气体</option>
+                <option value="lanthanoid">🌸 镧系</option>
+                <option value="actinoid">☢️ 锕系</option>
+            </select>
+        </div>
+        <button class="btn-random" onclick="pickRandom()">🎲 探索</button>
     </div>
 
-    <div class="table-container">
+    <div class="table-wrapper">
         <div class="periodic-table" id="tableGrid">
-            <!-- 占位符：镧系和锕系在主表的位置 -->
+            <!-- 占位符 -->
             <div class="placeholder" style="grid-column: 3; grid-row: 6;">57-71</div>
             <div class="placeholder" style="grid-column: 3; grid-row: 7;">89-103</div>
         </div>
     </div>
 
-    <div class="legend-bar" id="legendBar">
-        <!-- JS生成图例 -->
-    </div>
-
-    <!-- 详情弹窗 -->
+    <!-- 弹窗 -->
     <div class="modal-overlay" id="modal">
-        <div class="modal-card" id="modalCard">
-            <button class="close-btn" onclick="closeModal()">&times;</button>
-            <div class="modal-header">
-                <div class="modal-symbol-box" id="m-symbol">Fe</div>
-                <div class="modal-info">
-                    <h2 id="m-name">铁 (Iron)</h2>
-                    <p id="m-cat">过渡金属</p>
-                </div>
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <div class="atom-stage" id="atomVis">
+                <div class="nucleus"></div>
             </div>
             <div class="modal-body">
-                <div class="data-grid">
-                    <div class="data-item"><label>原子序数</label><span id="m-num">26</span></div>
-                    <div class="data-item"><label>原子量</label><span id="m-mass">55.845</span></div>
-                    <div class="data-item"><label>电子排布</label><span id="m-config">[Ar] 3d6 4s2</span></div>
-                    <div class="data-item"><label>物理状态</label><span id="m-state">固体</span></div>
+                <div class="m-header">
+                    <div class="m-symbol" id="m-symbol">Fe</div>
+                    <div class="m-title">
+                        <h2 class="m-name" id="m-name">铁 (Iron)</h2>
+                        <span class="m-cat" id="m-cat">过渡金属</span>
+                    </div>
                 </div>
-                <div class="modal-desc" id="m-desc">
-                    铁是地壳中含量第四丰富的元素，也是宇宙中第六丰富的元素。它是现代工业的基础。
+                <div class="m-data-grid">
+                    <div class="m-data-item">
+                        <span class="m-label">原子序数</span>
+                        <span class="m-val" id="m-num">26</span>
+                    </div>
+                    <div class="m-data-item">
+                        <span class="m-label">相对原子质量</span>
+                        <span class="m-val" id="m-mass">55.845</span>
+                    </div>
+                    <div class="m-data-item">
+                        <span class="m-label">物理状态</span>
+                        <span class="m-val" id="m-state">固体</span>
+                    </div>
+                    <div class="m-data-item">
+                        <span class="m-label">发现时间</span>
+                        <span class="m-val" id="m-year">古代</span>
+                    </div>
                 </div>
+                <div class="m-desc" id="m-desc">简介...</div>
             </div>
         </div>
     </div>
 
 <script>
-    // 压缩的元素数据 (1-118)
-    // 格式: [原子序数, 符号, 中文名, 英文名, 原子量, 分类, 状态, 电子排布(简), 简介]
-    // 为了代码简洁，部分简介使用了通用模板
+    
+    // ==========================================
+    // 数据区域 - 请将您刚才复制的1-118号元素数据粘贴到下方
+    // ==========================================
+    
     const rawData = [
-        [1, "H", "氢", "Hydrogen", "1.008", "nonmetal", "gas", "1s1", "宇宙中最丰富的元素，恒星的主要燃料。"],
-        [2, "He", "氦", "Helium", "4.0026", "noble", "gas", "1s2", "第二轻的元素，用于气球和超导磁体冷却。"],
-        [3, "Li", "锂", "Lithium", "6.94", "alkali", "solid", "[He] 2s1", "最轻的金属，广泛用于电池技术。"],
-        [4, "Be", "铍", "Beryllium", "9.0122", "alkaline", "solid", "[He] 2s2", "轻而坚硬，用于航空航天和X射线窗口。"],
-        [5, "B", "硼", "Boron", "10.81", "metalloid", "solid", "[He] 2s2 2p1", "用于耐热玻璃和植物生长。"],
-        [6, "C", "碳", "Carbon", "12.011", "nonmetal", "solid", "[He] 2s2 2p2", "生命的基础，存在形式包括钻石和石墨。"],
-        [7, "N", "氮", "Nitrogen", "14.007", "nonmetal", "gas", "[He] 2s2 2p3", "占地球大气的78%，是蛋白质的关键成分。"],
-        [8, "O", "氧", "Oxygen", "15.999", "nonmetal", "gas", "[He] 2s2 2p4", "生命呼吸必需，地壳中含量最丰富的元素。"],
-        [9, "F", "氟", "Fluorine", "18.998", "halogen", "gas", "[He] 2s2 2p5", "反应性最强的元素，用于牙膏和特氟龙。"],
-        [10, "Ne", "氖", "Neon", "20.180", "noble", "gas", "[He] 2s2 2p6", "用于霓虹灯广告牌，发出红橙色光。"],
-        [11, "Na", "钠", "Sodium", "22.990", "alkali", "solid", "[Ne] 3s1", "食盐的主要成分，维持人体体液平衡。"],
-        [12, "Mg", "镁", "Magnesium", "24.305", "alkaline", "solid", "[Ne] 3s2", "燃烧发出白光，用于合金和叶绿素中心。"],
-        [13, "Al", "铝", "Aluminium", "26.982", "post-trans", "solid", "[Ne] 3s2 3p1", "地壳中最丰富的金属，轻便且耐腐蚀。"],
-        [14, "Si", "硅", "Silicon", "28.085", "metalloid", "solid", "[Ne] 3s2 3p2", "半导体工业的基础，存在于沙子和岩石中。"],
-        [15, "P", "磷", "Phosphorus", "30.974", "nonmetal", "solid", "[Ne] 3s2 3p3", "存在于DNA和骨骼中，也用于火柴和肥料。"],
-        [16, "S", "硫", "Sulfur", "32.06", "nonmetal", "solid", "[Ne] 3s2 3p4", "黄色晶体，用于制造硫酸和橡胶硫化。"],
-        [17, "Cl", "氯", "Chlorine", "35.45", "halogen", "gas", "[Ne] 3s2 3p5", "用于消毒水和制造PVC塑料。"],
-        [18, "Ar", "氩", "Argon", "39.948", "noble", "gas", "[Ne] 3s2 3p6", "灯泡中的填充气，焊接保护气。"],
-        [19, "K", "钾", "Potassium", "39.098", "alkali", "solid", "[Ar] 4s1", "植物生长必需元素，神经传导关键。"],
-        [20, "Ca", "钙", "Calcium", "40.078", "alkaline", "solid", "[Ar] 4s2", "骨骼和牙齿的主要成分，水泥原料。"],
-        [21, "Sc", "钪", "Scandium", "44.956", "transition", "solid", "[Ar] 3d1 4s2", "用于航空铝合金和高强度灯。"],
-        [22, "Ti", "钛", "Titanium", "47.867", "transition", "solid", "[Ar] 3d2 4s2", "强度高密度低，生物相容性好（植入物）。"],
-        [23, "V", "钒", "Vanadium", "50.942", "transition", "solid", "[Ar] 3d3 4s2", "用于强化钢材，工具钢。"],
-        [24, "Cr", "铬", "Chromium", "51.996", "transition", "solid", "[Ar] 3d5 4s1", "不锈钢的关键成分，提供光泽和防锈。"],
-        [25, "Mn", "锰", "Manganese", "54.938", "transition", "solid", "[Ar] 3d5 4s2", "钢材脱氧剂，也是人体微量元素。"],
-        [26, "Fe", "铁", "Iron", "55.845", "transition", "solid", "[Ar] 3d6 4s2", "应用最广泛的金属，血红蛋白的核心。"],
-        [27, "Co", "钴", "Cobalt", "58.933", "transition", "solid", "[Ar] 3d7 4s2", "用于超级合金、磁体和蓝色颜料。"],
-        [28, "Ni", "镍", "Nickel", "58.693", "transition", "solid", "[Ar] 3d8 4s2", "用于硬币、电池和不锈钢。"],
-        [29, "Cu", "铜", "Copper", "63.546", "transition", "solid", "[Ar] 3d10 4s1", "优良的导电体，人类最早使用的金属之一。"],
-        [30, "Zn", "锌", "Zinc", "65.38", "transition", "solid", "[Ar] 3d10 4s2", "用于镀锌防锈，黄铜的成分。"],
-        [31, "Ga", "镓", "Gallium", "69.723", "post-trans", "solid", "[Ar] 3d10 4s2 4p1", "熔点极低（29.7°C），用于半导体。"],
-        [32, "Ge", "锗", "Germanium", "72.630", "metalloid", "solid", "[Ar] 3d10 4s2 4p2", "早期晶体管材料，用于光纤。"],
-        [33, "As", "砷", "Arsenic", "74.922", "metalloid", "solid", "[Ar] 3d10 4s2 4p3", "著名的毒物，但也用于半导体。"],
-        [34, "Se", "硒", "Selenium", "78.971", "nonmetal", "solid", "[Ar] 3d10 4s2 4p4", "用于复印机感光鼓和去屑洗发水。"],
-        [35, "Br", "溴", "Bromine", "79.904", "halogen", "liquid", "[Ar] 3d10 4s2 4p5", "常温下唯一的液态非金属，用于阻燃剂。"],
-        [36, "Kr", "氪", "Krypton", "83.798", "noble", "gas", "[Ar] 3d10 4s2 4p6", "用于高强度闪光灯和激光。"],
-        [37, "Rb", "铷", "Rubidium", "85.468", "alkali", "solid", "[Kr] 5s1", "用于原子钟和GPS系统。"],
-        [38, "Sr", "锶", "Strontium", "87.62", "alkaline", "solid", "[Kr] 5s2", "用于红色烟花和夜光漆。"],
-        [39, "Y", "钇", "Yttrium", "88.906", "transition", "solid", "[Kr] 4d1 5s2", "用于LED荧光粉和超导体。"],
-        [40, "Zr", "锆", "Zirconium", "91.224", "transition", "solid", "[Kr] 4d2 5s2", "耐腐蚀，用于核反应堆包壳和假钻。"],
-        [41, "Nb", "铌", "Niobium", "92.906", "transition", "solid", "[Kr] 4d4 5s1", "用于超导磁体和低过敏首饰。"],
-        [42, "Mo", "钼", "Molybdenum", "95.95", "transition", "solid", "[Kr] 4d5 5s1", "高熔点，用于高温合金。"],
-        [43, "Tc", "锝", "Technetium", "98", "transition", "solid", "[Kr] 4d5 5s2", "第一个人工合成元素，用于医学成像。"],
-        [44, "Ru", "钌", "Ruthenium", "101.07", "transition", "solid", "[Kr] 4d7 5s1", "用于电子触点和催化剂。"],
-        [45, "Rh", "铑", "Rhodium", "102.91", "transition", "solid", "[Kr] 4d8 5s1", "最昂贵的贵金属之一，用于反光镜。"],
-        [46, "Pd", "钯", "Palladium", "106.42", "transition", "solid", "[Kr] 4d10", "用于汽车尾气催化转化器。"],
-        [47, "Ag", "银", "Silver", "107.87", "transition", "solid", "[Kr] 4d10 5s1", "导电导热性最好的金属。"],
-        [48, "Cd", "镉", "Cadmium", "112.41", "transition", "solid", "[Kr] 4d10 5s2", "有毒，曾用于镍镉电池。"],
-        [49, "In", "铟", "Indium", "114.82", "post-trans", "solid", "[Kr] 4d10 5s2 5p1", "用于触摸屏的透明导电涂层(ITO)。"],
-        [50, "Sn", "锡", "Tin", "118.71", "post-trans", "solid", "[Kr] 4d10 5s2 5p2", "用于焊接和食品罐头涂层。"],
-        [51, "Sb", "锑", "Antimony", "121.76", "metalloid", "solid", "[Kr] 4d10 5s2 5p3", "用于阻燃剂和铅酸电池。"],
-        [52, "Te", "碲", "Tellurium", "127.60", "metalloid", "solid", "[Kr] 4d10 5s2 5p4", "用于太阳能电池板和合金。"],
-        [53, "I", "碘", "Iodine", "126.90", "halogen", "solid", "[Kr] 4d10 5s2 5p5", "人体甲状腺必需，用于消毒。"],
-        [54, "Xe", "氙", "Xenon", "131.29", "noble", "gas", "[Kr] 4d10 5s2 5p6", "用于离子推进器和强光灯。"],
-        [55, "Cs", "铯", "Cesium", "132.91", "alkali", "solid", "[Xe] 6s1", "定义“秒”的标准，最活泼的金属之一。"],
-        [56, "Ba", "钡", "Barium", "137.33", "alkaline", "solid", "[Xe] 6s2", "用于医学造影（钡餐）和绿色烟花。"],
-        // 镧系 (57-71)
-        [57, "La", "镧", "Lanthanum", "138.91", "lanthanoid", "solid", "[Xe] 5d1 6s2", "混合动力汽车电池材料。"],
-        [58, "Ce", "铈", "Cerium", "140.12", "lanthanoid", "solid", "[Xe] 4f1 5d1 6s2", "打火石的主要成分。"],
-        [59, "Pr", "镨", "Praseodymium", "140.91", "lanthanoid", "solid", "[Xe] 4f3 6s2", "用于护目镜和黄色玻璃。"],
-        [60, "Nd", "钕", "Neodymium", "144.24", "lanthanoid", "solid", "[Xe] 4f4 6s2", "制造世界上最强的永磁体。"],
-        [61, "Pm", "钷", "Promethium", "145", "lanthanoid", "solid", "[Xe] 4f5 6s2", "放射性，用于核电池。"],
-        [62, "Sm", "钐", "Samarium", "150.36", "lanthanoid", "solid", "[Xe] 4f6 6s2", "用于磁体和吉他拾音器。"],
-        [63, "Eu", "铕", "Europium", "151.96", "lanthanoid", "solid", "[Xe] 4f7 6s2", "欧元纸币的防伪荧光材料。"],
-        [64, "Gd", "钆", "Gadolinium", "157.25", "lanthanoid", "solid", "[Xe] 4f7 5d1 6s2", "MRI造影剂。"],
-        [65, "Tb", "铽", "Terbium", "158.93", "lanthanoid", "solid", "[Xe] 4f9 6s2", "用于绿色荧光粉和声纳。"],
-        [66, "Dy", "镝", "Dysprosium", "162.50", "lanthanoid", "solid", "[Xe] 4f10 6s2", "用于硬盘驱动器和激光。"],
-        [67, "Ho", "钬", "Holmium", "164.93", "lanthanoid", "solid", "[Xe] 4f11 6s2", "具有最高的磁矩，用于激光外科。"],
-        [68, "Er", "铒", "Erbium", "167.26", "lanthanoid", "solid", "[Xe] 4f12 6s2", "用于光纤放大器和粉色玻璃。"],
-        [69, "Tm", "铥", "Thulium", "168.93", "lanthanoid", "solid", "[Xe] 4f13 6s2", "最稀有的稀土元素之一，用于X射线机。"],
-        [70, "Yb", "镱", "Ytterbium", "173.05", "lanthanoid", "solid", "[Xe] 4f14 6s2", "用于不锈钢强化和原子钟。"],
-        [71, "Lu", "镥", "Lutetium", "174.97", "lanthanoid", "solid", "[Xe] 4f14 5d1 6s2", "用于PET扫描探测器。"],
-        // 接回主表
-        [72, "Hf", "铪", "Hafnium", "178.49", "transition", "solid", "[Xe] 4f14 5d2 6s2", "用于核潜艇控制棒和芯片绝缘体。"],
-        [73, "Ta", "钽", "Tantalum", "180.95", "transition", "solid", "[Xe] 4f14 5d3 6s2", "用于手机电容器，极耐腐蚀。"],
-        [74, "W", "钨", "Tungsten", "183.84", "transition", "solid", "[Xe] 4f14 5d4 6s2", "熔点最高的金属，用于灯丝。"],
-        [75, "Re", "铼", "Rhenium", "186.21", "transition", "solid", "[Xe] 4f14 5d5 6s2", "用于喷气发动机的高温合金。"],
-        [76, "Os", "锇", "Osmium", "190.23", "transition", "solid", "[Xe] 4f14 5d6 6s2", "密度最大的自然元素。"],
-        [77, "Ir", "铱", "Iridium", "192.22", "transition", "solid", "[Xe] 4f14 5d7 6s2", "最耐腐蚀的金属，用于火花塞。"],
-        [78, "Pt", "铂", "Platinum", "195.08", "transition", "solid", "[Xe] 4f14 5d9 6s1", "用于首饰、催化剂和抗癌药。"],
-        [79, "Au", "金", "Gold", "196.97", "transition", "solid", "[Xe] 4f14 5d10 6s1", "延展性最好的金属，货币与装饰。"],
-        [80, "Hg", "汞", "Mercury", "200.59", "transition", "liquid", "[Xe] 4f14 5d10 6s2", "常温下唯一的液态金属（水银）。"],
-        [81, "Tl", "铊", "Thallium", "204.38", "post-trans", "solid", "[Xe] 4f14 5d10 6s2 6p1", "剧毒，曾用于鼠药。"],
-        [82, "Pb", "铅", "Lead", "207.2", "post-trans", "solid", "[Xe] 4f14 5d10 6s2 6p2", "用于电池、辐射屏蔽和子弹。"],
-        [83, "Bi", "铋", "Bismuth", "208.98", "post-trans", "solid", "[Xe] 4f14 5d10 6s2 6p3", "用于胃药和化妆品，彩虹色晶体。"],
-        [84, "Po", "钋", "Polonium", "209", "metalloid", "solid", "[Xe] 4f14 5d10 6s2 6p4", "居里夫人发现的强放射性元素。"],
-        [85, "At", "砹", "Astatine", "210", "halogen", "solid", "[Xe] 4f14 5d10 6s2 6p5", "地壳中最稀有的自然元素之一。"],
-        [86, "Rn", "氡", "Radon", "222", "noble", "gas", "[Xe] 4f14 5d10 6s2 6p6", "放射性气体，由于地下室积聚而危害健康。"],
-        [87, "Fr", "钫", "Francium", "223", "alkali", "solid", "[Rn] 7s1", "极不稳定的放射性碱金属。"],
-        [88, "Ra", "镭", "Radium", "226", "alkaline", "solid", "[Rn] 7s2", "曾用于夜光表盘，强放射性。"],
-        // 锕系 (89-103)
-        [89, "Ac", "锕", "Actinium", "227", "actinoid", "solid", "[Rn] 6d1 7s2", "发蓝光的强放射性元素。"],
-        [90, "Th", "钍", "Thorium", "232.04", "actinoid", "solid", "[Rn] 6d2 7s2", "潜在的核燃料，用于煤气灯纱罩。"],
-        [91, "Pa", "镤", "Protactinium", "231.04", "actinoid", "solid", "[Rn] 5f2 6d1 7s2", "稀有且具有高放射性。"],
-        [92, "U", "铀", "Uranium", "238.03", "actinoid", "solid", "[Rn] 5f3 6d1 7s2", "核电站和核武器的主要燃料。"],
-        [93, "Np", "镎", "Neptunium", "237", "actinoid", "solid", "[Rn] 5f4 6d1 7s2", "用于中子探测设备。"],
-        [94, "Pu", "钚", "Plutonium", "244", "actinoid", "solid", "[Rn] 5f6 7s2", "用于核武器和太空探测器电池。"],
-        [95, "Am", "镅", "Americium", "243", "actinoid", "solid", "[Rn] 5f7 7s2", "家用烟雾探测器中含有微量镅。"],
-        [96, "Cm", "锔", "Curium", "247", "actinoid", "solid", "[Rn] 5f7 6d1 7s2", "用于火星车X射线光谱仪。"],
-        [97, "Bk", "锫", "Berkelium", "247", "actinoid", "solid", "[Rn] 5f9 7s2", "人工合成，用于合成更重元素。"],
-        [98, "Cf", "锎", "Californium", "251", "actinoid", "solid", "[Rn] 5f10 7s2", "极昂贵，用于中子源启动反应堆。"],
-        [99, "Es", "锿", "Einsteinium", "252", "actinoid", "solid", "[Rn] 5f11 7s2", "以爱因斯坦命名，氢弹爆炸产物中发现。"],
-        [100, "Fm", "镄", "Fermium", "257", "actinoid", "solid", "[Rn] 5f12 7s2", "以费米命名，人工合成重元素。"],
-        [101, "Md", "钔", "Mendelevium", "258", "actinoid", "solid", "[Rn] 5f13 7s2", "以门捷列夫命名，纪念周期表之父。"],
-        [102, "No", "锘", "Nobelium", "259", "actinoid", "solid", "[Rn] 5f14 7s2", "以诺贝尔命名。"],
-        [103, "Lr", "铹", "Lawrencium", "266", "actinoid", "solid", "[Rn] 5f14 7s2 7p1", "以回旋加速器发明者劳伦斯命名。"],
+        // 第一周期
+        [1,"H","氢","Hydrogen","1.008","nonmetal","gas","1766","宇宙大爆炸产生的第一个元素，占据了宇宙质量的75%。虽然它是水的核心成分，但纯氢气极易燃烧！"],
+        [2,"He","氦","Helium","4.0026","noble","gas","1868","它是唯一在地球被发现之前先在太阳上被发现的元素。吸入它会让你的声音变得像唐老鸭（但请不要尝试，有窒息风险）。"],
+        
+        // 第二周期
+        [3,"Li","锂","Lithium","6.94","alkali","solid","1817","最轻的金属，轻到可以漂浮在油上。它是现代生活的动力源，你的手机和电动车都离不开它。"],
+        [4,"Be","铍","Beryllium","9.0122","alkaline","solid","1798","它尝起来是甜的，但却有剧毒！它是詹姆斯·韦伯太空望远镜镜片的主要材料。"],
+        [5,"B","硼","Boron","10.81","metalloid","solid","1808","既不是金属也不是非金属。它能让玻璃耐热（如Pyrex），也能做成奇怪的非牛顿流体“史莱姆”。"],
+        [6,"C","碳","Carbon","12.011","nonmetal","solid","史前","元素界的“变形金刚”：既可以是铅笔里柔软的石墨，也可以是坚硬璀璨的钻石，更是地球生命的基础。"],
+        [7,"N","氮","Nitrogen","14.007","nonmetal","gas","1772","空气中78%都是它。液氮可以瞬间冻结玫瑰花，而它也是炸药（TNT）和肥料的关键成分。"],
+        [8,"O","氧","Oxygen","15.999","nonmetal","gas","1774","没有它你就无法呼吸，火也无法燃烧。液态氧是淡蓝色的，而且竟然会被磁铁吸引！"],
+        [9,"F","氟","Fluorine","18.998","halogen","gas","1886","化学界的“暴躁老虎”，几乎能腐蚀一切。但当它被驯服后，能保护你的牙齿（氟化物）或做成不粘锅（特氟龙）。"],
+        [10,"Ne","氖","Neon","20.180","noble","gas","1898","虽然霓虹灯五颜六色，但纯氖气通电时只发出迷人的红橙色光。它是拉斯维加斯繁华夜景的功臣。"],
+        
+        // 第三周期
+        [11,"Na","钠","Sodium","22.990","alkali","solid","1807","一种软到可以用刀切的金属。它脾气暴躁，遇到水就会剧烈爆炸，但和氯结合后却是美味的食盐。"],
+        [12,"Mg","镁","Magnesium","24.305","alkaline","solid","1755","燃烧时会发出极其耀眼的白光，早期摄影师用它做闪光粉。它也是植物叶绿素的核心。"],
+        [13,"Al","铝","Aluminium","26.982","post-trans","solid","1825","地壳中含量最丰富的金属。曾经比黄金还贵，拿破仑三世只用铝制餐具招待最尊贵的客人。"],
+        [14,"Si","硅","Silicon","28.085","metalloid","solid","1824","沙子的主要成分，也是信息时代的基石。没有它，就没有你现在的电脑、手机和AI。"],
+        [15,"P","磷","Phosphorus","30.974","nonmetal","solid","1669","最早是从尿液中提炼出来的！白磷在空气中会自燃，而红磷则是火柴皮的主要成分。"],
+        [16,"S","硫","Sulfur","32.06","nonmetal","solid","史前","也就是“硫磺”，有臭鸡蛋味，常出现在火山喷发口。它是制造硫酸和火药的关键原料。"],
+        [17,"Cl","氯","Chlorine","35.45","halogen","gas","1774","一战时曾是可怕的化学武器，但现在微量的氯保护着我们的饮用水和泳池免受细菌侵害。"],
+        [18,"Ar","氩","Argon","39.948","noble","gas","1894","名字意为“懒惰”，因为它极不活泼。它被填充在灯泡和双层玻璃窗里，防止氧化和隔热。"],
+        
+        // 第四周期
+        [19,"K","钾","Potassium","39.098","alkali","solid","1807","香蕉里富含钾，它对你的神经传导至关重要。和钠一样，纯钾扔进水里也会炸出紫色的火花。"],
+        [20,"Ca","钙","Calcium","40.078","alkaline","solid","1808","你身体里含量最多的金属元素，构成了你的骨骼和牙齿。它也是水泥和石膏的主要成分。"],
+        [21,"Sc","钪","Scandium","44.956","transition","solid","1879","一种稀土元素，只需添加一点点，就能让铝合金强度大增，常用于制造战斗机和高档自行车。"],
+        [22,"Ti","钛","Titanium","47.867","transition","solid","1791","以希腊神话泰坦命名。它轻如铝、强如钢，而且人体不排斥它，是制造人工关节和种植牙的完美材料。"],
+        [23,"V","钒","Vanadium","50.942","transition","solid","1801","工业味精！只需往钢里加一点点钒，就能造出极其坚硬的工具钢，比如扳手和手术刀。"],
+        [24,"Cr","铬","Chromium","51.996","transition","solid","1797","给它抛光后能像镜子一样亮。不锈钢之所以“不锈”，就是因为表面有一层致密的氧化铬保护膜。"],
+        [25,"Mn","锰","Manganese","54.938","transition","solid","1774","没有锰就没有现代钢铁工业。它能去除钢中的杂质，让钢材更加坚韧耐磨。"],
+        [26,"Fe","铁","Iron","55.845","transition","solid","史前","宇宙中最稳定的原子核。它是地球的脊梁（地核主要成分），也是你血液红色的来源（血红蛋白）。"],
+        [27,"Co","钴","Cobalt","58.933","transition","solid","1735","古代工匠用它烧制出迷人的“钴蓝”瓷器。现在它是锂电池阴极的关键材料，也是维生素B12的核心。"],
+        [28,"Ni","镍","Nickel","58.693","transition","solid","1751","虽然叫“镍”币，但美国5分镍币里其实大部分是铜。它也是地核的主要成分之一。"],
+        [29,"Cu","铜","Copper","63.546","transition","solid","史前","人类最早使用的金属之一。它导电性极佳，且具有天然杀菌作用。自由女神像原本是铜色的，氧化后才变绿。"],
+        [30,"Zn","锌","Zinc","65.38","transition","solid","史前","钢铁的“保镖”，镀在铁表面防止生锈（镀锌）。它也是人体免疫系统必需的微量元素。"],
+        [31,"Ga","镓","Gallium","69.723","post-trans","solid","1875","魔术师的最爱！它的熔点只有29.7℃，放在手心里就会融化成液态金属，还能腐蚀铝罐。"],
+        [32,"Ge","锗","Germanium","72.630","metalloid","solid","1886","在硅崛起之前，它是最早的半导体材料。现在主要用于光纤和夜视仪镜头。"],
+        [33,"As","砷","Arsenic","74.922","metalloid","solid","古代","著名的“砒霜”成分，历史上最著名的毒药。有趣的是，它在微电子领域也有重要用途。"],
+        [34,"Se","硒","Selenium","78.971","nonmetal","solid","1817","它对光非常敏感，光照越强导电越好，因此被用于复印机感光鼓和自动门感应器。"],
+        [35,"Br","溴","Bromine","79.904","halogen","liquid","1826","常温下仅有的两种液态元素之一（另一种是汞）。它挥发出红棕色的恶臭气体，名字原意就是“恶臭”。"],
+        [36,"Kr","氪","Krypton","83.798","noble","gas","1898","超人的故乡？不，它是一种稀有气体。用于高强度闪光灯（如机场跑道灯）和激光。"],
+        
+        // 第五周期
+        [37,"Rb","铷","Rubidium","85.468","alkali","solid","1861","一种非常软的金属，用于制造高精度的原子钟，也是烟花中紫色的来源。"],
+        [38,"Sr","锶","Strontium","87.62","alkaline","solid","1790","烟花中鲜艳红色的来源。锶-90是危险的核辐射产物，但非放射性锶用于制造发光涂料。"],
+        [39,"Y","钇","Yttrium","88.906","transition","solid","1794","阿波罗登月带回的岩石中富含钇。它是LED白光的关键成分，也是超导材料的一部分。"],
+        [40,"Zr","锆","Zirconium","91.224","transition","solid","1789","立方氧化锆是钻石最常见的廉价替代品。金属锆极耐腐蚀，用于核反应堆的燃料棒包壳。"],
+        [41,"Nb","铌","Niobium","92.906","transition","solid","1801","用于制造超强磁体（如MRI扫描仪）和低致敏性的珠宝首饰。"],
+        [42,"Mo","钼","Molybdenum","95.95","transition","solid","1778","拥有极高的熔点，用于制造坦克装甲、火箭发动机部件和高温润滑剂。"],
+        [43,"Tc","锝","Technetium","98","transition","solid","1937","第一个人工合成的元素（名字意为“人造”）。它是医学成像中最重要的放射性示踪剂。"],
+        [44,"Ru","钌","Ruthenium","101.07","transition","solid","1844","一种坚硬的白色金属，用于钢笔尖的耐磨合金和高端电子触点。"],
+        [45,"Rh","铑","Rhodium","102.91","transition","solid","1803","世界上最昂贵的贵金属之一，比黄金还贵。主要用于汽车尾气催化转化器和探照灯反射面。"],
+        [46,"Pd","钯","Palladium","106.42","transition","solid","1803","它能像海绵吸水一样吸收900倍体积的氢气！是氢能源汽车和尾气净化的关键材料。"],
+        [47,"Ag","银","Silver","107.87","transition","solid","古代","所有金属中导电性、导热性、反光性最好的！除了做首饰，它还用于太阳能电池板和镜子。"],
+        [48,"Cd","镉","Cadmium","112.41","transition","solid","1817","剧毒重金属，曾用于镍镉电池。它能吸收中子，因此被用于控制核反应堆的速度。"],
+        [49,"In","铟","Indium","114.82","post-trans","solid","1863","没有它就没有触摸屏。氧化铟锡（ITO）是透明且导电的，覆盖在你的手机屏幕上。"],
+        [50,"Sn","锡","Tin","118.71","post-trans","solid","古代","锡纸（现在多用铝箔）和罐头盒的涂层。它在低温下会发生“锡疫”，变成粉末状的灰锡。"],
+        [51,"Sb","锑","Antimony","121.76","metalloid","solid","古代","古代妇女用它画眉毛（眼影）。现在主要用于制造阻燃剂和铅酸电池。"],
+        [52,"Te","碲","Tellurium","127.60","metalloid","solid","1782","名字来源于拉丁语“地球”。它是碲化镉太阳能电池板的关键成分，有大蒜味。"],
+        [53,"I","碘","Iodine","126.90","halogen","solid","1811","升华时会产生美丽的紫色蒸汽。它是甲状腺激素的重要成分，缺碘会导致大脖子病。"],
+        [54,"Xe","氙","Xenon","131.29","noble","gas","1898","用于离子推进器（让卫星在太空变轨）和IMAX电影放映机的高强度光源。"],
+        
+        // 第六周期
+        [55,"Cs","铯","Cesium","132.91","alkali","solid","1860","最活泼的金属之一，定义了时间的标准（铯原子钟）。遇水爆炸威力巨大。"],
+        [56,"Ba","钡","Barium","137.33","alkaline","solid","1808","医院里的“钡餐”造影剂。它也让烟花呈现出苹果绿色。"],
+        [57,"La","镧","Lanthanum","138.91","lanthanoid","solid","1839","混合动力汽车（如普锐斯）的电池中含有大量的镧。"],
+        [58,"Ce","铈","Cerium","140.12","lanthanoid","solid","1803","打火石的主要成分（铈铁合金），摩擦时会产生火花。也用于玻璃抛光。"],
+        [59,"Pr","镨","Praseodymium","140.91","lanthanoid","solid","1885","名字意为“绿色的双胞胎”。用于制造护目镜，能过滤掉焊接时的强黄光。"],
+        [60,"Nd","钕","Neodymium","144.24","lanthanoid","solid","1885","制造地球上最强永磁体（钕铁硼）的关键。你的耳机、硬盘和电动车电机里都有它。"],
+        [61,"Pm","钷","Promethium","145","lanthanoid","solid","1945","唯一的放射性镧系元素。用于核电池，为心脏起搏器或航天器提供长久动力。"],
+        [62,"Sm","钐","Samarium","150.36","lanthanoid","solid","1879","用于制造耐高温的钐钴磁体，也是电吉他拾音器的材料。"],
+        [63,"Eu","铕","Europium","151.96","lanthanoid","solid","1901","欧元纸币防伪的关键！在紫外线下，铕化合物会发出红光。"],
+        [64,"Gd","钆","Gadolinium","157.25","lanthanoid","solid","1880","磁共振成像（MRI）的造影剂，能让肿瘤在扫描中更清晰地显示出来。"],
+        [65,"Tb","铽","Terbium","158.93","lanthanoid","solid","1843","它让你的手机屏幕能显示绿色。也是一种能随磁场改变形状的智能材料。"],
+        [66,"Dy","镝","Dysprosium","162.50","lanthanoid","solid","1886","名字意为“难以获取”。用于提高钕磁铁在高温下的性能，比如在电动汽车马达中。"],
+        [67,"Ho","钬","Holmium","164.93","lanthanoid","solid","1878","拥有所有元素中最高的磁矩。用于医疗激光，可以粉碎肾结石。"],
+        [68,"Er","铒","Erbium","167.26","lanthanoid","solid","1843","光纤通信的放大器，没有它互联网无法跨越海洋。它还能把玻璃染成粉红色。"],
+        [69,"Tm","铥","Thulium","168.93","lanthanoid","solid","1879","最稀有的稀土元素之一。用于便携式X射线机，甚至用于纸币防伪。"],
+        [70,"Yb","镱","Ytterbium","173.05","lanthanoid","solid","1878","用于制造世界上最精确的原子钟，误差几十亿年才差一秒。"],
+        [71,"Lu","镥","Lutetium","174.97","lanthanoid","solid","1907","最硬、最致密的镧系元素。用于PET扫描仪的探测器，帮助诊断癌症。"],
+        [72,"Hf","铪","Hafnium","178.49","transition","solid","1923","芯片制造的关键！它作为栅极绝缘层，让你的电脑处理器能在此刻如此快速。"],
+        [73,"Ta","钽","Tantalum","180.95","transition","solid","1802","极耐腐蚀，用于制造手机和电脑中的微型电容器。"],
+        [74,"W","钨","Tungsten","183.84","transition","solid","1783","熔点最高的金属（3422℃）。用于灯丝、火箭喷管和穿甲弹。"],
+        [75,"Re","铼","Rhenium","186.21","transition","solid","1925","极其稀有，熔点极高。它是喷气式飞机发动机涡轮叶片不可或缺的材料。"],
+        [76,"Os","锇","Osmium","190.23","transition","solid","1803","自然界中密度最大的元素。一块砖头大小的锇重达22公斤！用于制造高档钢笔尖。"],
+        [77,"Ir","铱","Iridium","192.22","transition","solid","1803","最耐腐蚀的金属，连王水都拿它没办法。恐龙灭绝时的陨石层中富含铱。"],
+        [78,"Pt","铂","Platinum","195.08","transition","solid","1735","俗称“白金”。除了做首饰，它主要用于催化剂和抗癌药物（顺铂）。"],
+        [79,"Au","金","Gold","196.97","transition","solid","史前","它太“懒”了，几乎不反应，所以永不生锈。极佳的延展性，1克金可以拉成3公里长的丝。"],
+        [80,"Hg","汞","Mercury","200.59","transition","liquid","古代","俗称水银，常温下唯一的液态金属。虽然有剧毒，但曾被秦始皇灌入地宫作为“江河湖海”。"],
+        [81,"Tl","铊","Thallium","204.38","post-trans","solid","1861","一种剧毒金属，曾被用作鼠药和暗杀毒药，被称为“毒药之王”。"],
+        [82,"Pb","铅","Lead","207.2","post-trans","solid","古代","很重、很软。古罗马人曾用它做水管（导致了铅中毒）。现在主要用于防辐射屏蔽和蓄电池。"],
+        [83,"Bi","铋","Bismuth","208.98","post-trans","solid","1753","它的晶体像彩虹色的回字迷宫，非常漂亮。它是胃药（次水杨酸铋）的成分。"],
+        [84,"Po","钋","Polonium","209","metalloid","solid","1898","居里夫人发现的，以她的祖国波兰命名。放射性极强，毒性是氰化物的25万倍。"],
+        [85,"At","砹","Astatine","210","halogen","solid","1940","地球上最稀有的自然元素，据估计整个地壳中只有不到30克！"],
+        [86,"Rn","氡","Radon","222","noble","gas","1900","一种放射性气体，常从地下室的花岗岩中渗出，是仅次于吸烟的肺癌诱因。"],
+        
+        // 第七周期
+        [87,"Fr","钫","Francium","223","alkali","solid","1939","极不稳定的放射性碱金属，遇水爆炸会比钠剧烈得多（如果能收集到足够多的话）。"],
+        [88,"Ra","镭","Radium","226","alkaline","solid","1898","居里夫人发现的另一种元素。曾被误以为有益健康而加在牙膏和巧克力里，其实放射性很强。"],
+        [89,"Ac","锕","Actinium","227","actinoid","solid","1899","在黑暗中会发出幽灵般的蓝光，因为它的放射性太强，电离了周围的空气。"],
+        [90,"Th","钍","Thorium","232.04","actinoid","solid","1829","储量比铀丰富得多的核燃料潜力股。也用于野营汽灯的纱罩，加热时发强光。"],
+        [91,"Pa","镤","Protactinium","231.04","actinoid","solid","1913","非常稀有且具有高放射性，目前除了科学研究外几乎没有商业用途。"],
+        [92,"U","铀","Uranium","238.03","actinoid","solid","1789","核电站和原子弹的能量来源。一公斤铀-235裂变产生的能量相当于2700吨煤。"],
+        [93,"Np","镎","Neptunium","237","actinoid","solid","1940","以海王星命名。它是铀反应堆的副产品，用于制造探测高能中子的设备。"],
+        [94,"Pu","钚","Plutonium","244","actinoid","solid","1940","以冥王星命名。它是核武器的核心装药，也是“旅行者号”探测器飞出太阳系的电池热源。"],
+        [95,"Am","镅","Americium","243","actinoid","solid","1944","你家里可能就有它！微量的镅被用于家用烟雾报警器，利用放射性检测烟雾。"],
+        [96,"Cm","锔","Curium","247","actinoid","solid","1944","以居里夫妇命名。它被用于火星探测车的X射线光谱仪，分析火星岩石成分。"],
+        [97,"Bk","锫","Berkelium","247","actinoid","solid","1949","以发现地加州伯克利命名。极难合成，主要用于合成更重的元素。"],
+        [98,"Cf","锎","Californium","251","actinoid","solid","1950","世界上最昂贵的物质之一。它是一个微型的中子源，用于探测油井和启动核反应堆。"],
+        [99,"Es","锿","Einsteinium","252","actinoid","solid","1952","以爱因斯坦命名。是在第一颗氢弹爆炸的尘埃中被发现的。"],
+        [100,"Fm","镄","Fermium","257","actinoid","solid","1952","以恩利克·费米命名。它是目前能通过中子轰击大量制备的最重元素。"],
+        [101,"Md","钔","Mendelevium","258","actinoid","solid","1955","以元素周期表之父门捷列夫命名，向这位伟大的化学家致敬。"],
+        [102,"No","锘","Nobelium","259","actinoid","solid","1966","以诺贝尔命名。关于它的发现权，美苏科学家曾争执不下。"],
+        [103,"Lr","铹","Lawrencium","266","actinoid","solid","1961","以回旋加速器的发明者劳伦斯命名。它是锕系的最后一位成员。"],
+        
         // 超重元素 (104-118)
-        [104, "Rf", "鑪", "Rutherfordium", "267", "transition", "unknown", "[Rn] 5f14 6d2 7s2", "人工合成放射性元素。"],
-        [105, "Db", "𨧀", "Dubnium", "268", "transition", "unknown", "[Rn] 5f14 6d3 7s2", "人工合成放射性元素。"],
-        [106, "Sg", "𨭎", "Seaborgium", "269", "transition", "unknown", "[Rn] 5f14 6d4 7s2", "唯一以在世科学家命名的元素（当时）。"],
-        [107, "Bh", "𨨏", "Bohrium", "270", "transition", "unknown", "[Rn] 5f14 6d5 7s2", "人工合成放射性元素。"],
-        [108, "Hs", "𨭆", "Hassium", "277", "transition", "unknown", "[Rn] 5f14 6d6 7s2", "人工合成放射性元素。"],
-        [109, "Mt", "䥑", "Meitnerium", "278", "unknown", "unknown", "[Rn] 5f14 6d7 7s2", "人工合成放射性元素。"],
-        [110, "Ds", "鐽", "Darmstadtium", "281", "unknown", "unknown", "[Rn] 5f14 6d8 7s2", "人工合成放射性元素。"],
-        [111, "Rg", "錀", "Roentgenium", "282", "unknown", "unknown", "[Rn] 5f14 6d9 7s2", "人工合成放射性元素。"],
-        [112, "Cn", "鎶", "Copernicium", "285", "transition", "unknown", "[Rn] 5f14 6d10 7s2", "人工合成放射性元素。"],
-        [113, "Nh", "鉨", "Nihonium", "286", "unknown", "unknown", "[Rn] 5f14 6d10 7s2 7p1", "首个由亚洲科学家发现的元素。"],
-        [114, "Fl", "鈇", "Flerovium", "289", "post-trans", "unknown", "[Rn] 5f14 6d10 7s2 7p2", "人工合成放射性元素。"],
-        [115, "Mc", "镆", "Moscovium", "290", "unknown", "unknown", "[Rn] 5f14 6d10 7s2 7p3", "人工合成放射性元素。"],
-        [116, "Lv", "鉝", "Livermorium", "293", "post-trans", "unknown", "[Rn] 5f14 6d10 7s2 7p4", "人工合成放射性元素。"],
-        [117, "Ts", "鿬", "Tennessine", "294", "halogen", "unknown", "[Rn] 5f14 6d10 7s2 7p5", "人工合成放射性元素。"],
-        [118, "Og", "鿫", "Oganesson", "294", "noble", "unknown", "[Rn] 5f14 6d10 7s2 7p6", "目前已知原子序数最大的元素。"]
+        [104,"Rf","鑪","Rutherfordium","267","transition","unknown","1964","以原子核之父卢瑟福命名。半衰期极短，只能在实验室存在几秒钟。"],
+        [105,"Db","𨧀","Dubnium","268","transition","unknown","1967","以俄罗斯杜布纳联合核子研究所命名，那里是合成重元素的圣地。"],
+        [106,"Sg","𨭎","Seaborgium","269","transition","unknown","1974","唯一一个在科学家（西博格）在世时就以他名字命名的元素，这在当时引起了巨大争议。"],
+        [107,"Bh","𨨏","Bohrium","270","transition","unknown","1981","以量子力学大师尼尔斯·玻尔命名。"],
+        [108,"Hs","𨭆","Hassium","277","transition","unknown","1984","以德国黑森州（Hesse）的拉丁名命名。"],
+        [109,"Mt","䥑","Meitnerium","278","unknown","unknown","1982","以莉泽·迈特纳命名，她是核裂变的发现者之一，却遗憾错过了诺贝尔奖。"],
+        [110,"Ds","鐽","Darmstadtium","281","unknown","unknown","1994","以德国达姆施塔特市命名，那里发现了许多重元素。"],
+        [111,"Rg","錀","Roentgenium","282","unknown","unknown","1994","以X射线的发现者伦琴命名。"],
+        [112,"Cn","鎶","Copernicium","285","transition","unknown","1996","以哥白尼命名。虽然它是金属，但在常温下可能像汞一样是液态甚至气态的。"],
+        [113,"Nh","鉨","Nihonium","286","unknown","unknown","2003","第一个由亚洲科学家（日本理化学研究所）发现并命名的元素，名字源于“日本”。"],
+        [114,"Fl","鈇","Flerovium","289","post-trans","unknown","1998","位于“稳定岛”边缘，科学家预测它可能有比邻近元素更长的寿命。"],
+        [115,"Mc","镆","Moscovium","290","unknown","unknown","2003","以莫斯科地区命名。常出现在科幻小说中，被描述为UFO的燃料（当然这只是科幻）。"],
+        [116,"Lv","鉝","Livermorium","293","post-trans","unknown","2000","以美国劳伦斯利弗莫尔国家实验室命名。"],
+        [117,"Ts","鿬","Tennessine","294","halogen","unknown","2010","以美国田纳西州命名。它是目前已知最新的卤素，但性质可能更像金属。"],
+        [118,"Og","鿫","Oganesson","294","noble","unknown","2002","目前人类合成的最重的元素！以俄罗斯科学家奥加涅相命名。它可能不是气体，而是固态的“稀有气体”。"]
     ];
 
-    // 将数组转换为对象数组，方便处理
+    // ==========================================
+    // 逻辑区域
+    // ==========================================
+
     const elements = rawData.map(d => ({
         number: d[0], symbol: d[1], name: d[2], nameEn: d[3],
-        mass: d[4], category: d[5], state: d[6], config: d[7], desc: d[8]
+        mass: d[4], category: d[5], state: d[6], year: d[7], desc: d[8]
     }));
 
-    // 颜色标签映射
     const categories = {
-        'alkali': '碱金属',
-        'alkaline': '碱土金属',
-        'transition': '过渡金属',
-        'post-trans': '贫金属',
-        'metalloid': '类金属',
-        'nonmetal': '非金属',
-        'halogen': '卤素',
-        'noble': '稀有气体',
-        'lanthanoid': '镧系元素',
-        'actinoid': '锕系元素',
-        'unknown': '性质未知'
+        'alkali': '碱金属', 'alkaline': '碱土金属', 'transition': '过渡金属',
+        'post-trans': '贫金属', 'metalloid': '类金属', 'nonmetal': '非金属',
+        'halogen': '卤素', 'noble': '稀有气体', 'lanthanoid': '镧系',
+        'actinoid': '锕系', 'unknown': '性质未知'
     };
 
     const tableGrid = document.getElementById('tableGrid');
     const modal = document.getElementById('modal');
 
-    // 计算元素在 Grid 中的位置
-    function getGridPosition(n) {
-        // 特殊处理镧系 (57-71) -> 移到底部第8行 (视觉上是第9行，因为有间距)
-        if (n >= 57 && n <= 71) return { row: 9, col: n - 57 + 4 }; // 从第4列开始排
-        
-        // 特殊处理锕系 (89-103) -> 移到底部第9行 (视觉上是第10行)
+    function getPos(n) {
+        if (n >= 57 && n <= 71) return { row: 9, col: n - 57 + 4 };
         if (n >= 89 && n <= 103) return { row: 10, col: n - 89 + 4 };
-
-        // 标准周期表逻辑
         if (n === 1) return { row: 1, col: 1 };
         if (n === 2) return { row: 1, col: 18 };
-        
-        if (n >= 3 && n <= 4) return { row: 2, col: n - 2 };
-        if (n >= 5 && n <= 10) return { row: 2, col: n + 8 };
-        
-        if (n >= 11 && n <= 12) return { row: 3, col: n - 10 };
-        if (n >= 13 && n <= 18) return { row: 3, col: n };
-        
-        if (n >= 19 && n <= 36) return { row: 4, col: n - 18 };
-        if (n >= 37 && n <= 54) return { row: 5, col: n - 36 };
-        
-        if (n >= 55 && n <= 56) return { row: 6, col: n - 54 };
-        // 57-71 跳过
-        if (n >= 72 && n <= 86) return { row: 6, col: n - 72 + 4 };
-        
-        if (n >= 87 && n <= 88) return { row: 7, col: n - 86 };
-        // 89-103 跳过
-        if (n >= 104 && n <= 118) return { row: 7, col: n - 104 + 4 };
-
-        return { row: 1, col: 1 };
+        if (n <= 4) return { row: 2, col: n - 2 };
+        if (n <= 10) return { row: 2, col: n + 8 };
+        if (n <= 12) return { row: 3, col: n - 10 };
+        if (n <= 18) return { row: 3, col: n };
+        if (n <= 36) return { row: 4, col: n - 18 };
+        if (n <= 54) return { row: 5, col: n - 36 };
+        if (n <= 56) return { row: 6, col: n - 54 };
+        if (n <= 86) return { row: 6, col: n - 72 + 4 };
+        if (n <= 88) return { row: 7, col: n - 86 };
+        return { row: 7, col: n - 104 + 4 };
     }
 
-    // 渲染图表
-    function renderTable() {
-        elements.forEach(elm => {
-            const pos = getGridPosition(elm.number);
+    function render() {
+        // 保留占位符
+        tableGrid.innerHTML = `
+            <div class="placeholder" style="grid-column: 3; grid-row: 6;">57-71</div>
+            <div class="placeholder" style="grid-column: 3; grid-row: 7;">89-103</div>
+        `;
+
+        elements.forEach(el => {
+            const pos = getPos(el.number);
             const div = document.createElement('div');
-            div.className = `element cat-${elm.category}`;
+            div.className = `element`;
             div.style.gridColumn = pos.col;
             div.style.gridRow = pos.row;
             
-            // 数据绑定
-            div.dataset.search = `${elm.name}${elm.nameEn}${elm.symbol}${elm.number}`.toLowerCase();
-            div.dataset.cat = elm.category;
-            div.dataset.state = elm.state;
+            div.dataset.col = pos.col;
+            div.dataset.row = pos.row;
+            div.dataset.cat = el.category;
+            div.dataset.search = (el.name + el.symbol + el.number + el.nameEn).toLowerCase();
+
+            // 颜色
+            const color = `var(--c-${el.category})`;
 
             div.innerHTML = `
-                <span class="at-num">${elm.number}</span>
-                <span class="symbol">${elm.symbol}</span>
-                <span class="name">${elm.name}</span>
+                <span class="at-num">${el.number}</span>
+                <span class="symbol" style="color:${color}">${el.symbol}</span>
+                <span class="name">${el.name}</span>
+                <div class="cat-bar" style="background:${color}; color:${color}"></div>
             `;
 
-            div.onclick = () => showDetails(elm);
+            div.onclick = () => openModal(el);
+            div.onmouseenter = () => highlightCrosshair(pos.col, pos.row);
+            div.onmouseleave = clearHighlight;
+
             tableGrid.appendChild(div);
         });
     }
 
-    // 渲染图例
-    function renderLegend() {
-        const bar = document.getElementById('legendBar');
-        for (const [key, label] of Object.entries(categories)) {
-            const item = document.createElement('div');
-            item.className = 'legend-item';
-            item.innerHTML = `<div class="dot" style="background:var(--c-${key})"></div>${label}`;
-            item.onclick = () => {
-                document.getElementById('categoryFilter').value = key;
-                filterElements();
-            };
-            bar.appendChild(item);
-        }
-    }
+    // 优化的十字高亮：不把其他的变全黑，而是变暗
+    function highlightCrosshair(col, row) {
+        if(window.innerWidth < 768) return; // 手机上禁用悬停逻辑防止误触
 
-    // 弹窗逻辑
-    function showDetails(elm) {
-        const colorVar = `var(--c-${elm.category})`;
-        
-        // 设置颜色
-        const symbolBox = document.getElementById('m-symbol');
-        symbolBox.style.color = colorVar;
-        symbolBox.style.borderColor = colorVar;
-        symbolBox.style.background = `rgba(255,255,255,0.05)`;
-        symbolBox.textContent = elm.symbol;
-
-        document.getElementById('m-name').textContent = `${elm.name} (${elm.nameEn})`;
-        document.getElementById('m-name').style.color = colorVar;
-        
-        document.getElementById('m-cat').textContent = categories[elm.category];
-        document.getElementById('m-num').textContent = elm.number;
-        document.getElementById('m-mass').textContent = elm.mass;
-        document.getElementById('m-config').textContent = elm.config;
-        
-        const stateMap = { 'solid': '固体', 'liquid': '液体', 'gas': '气体', 'unknown': '未知' };
-        document.getElementById('m-state').textContent = stateMap[elm.state];
-        
-        document.getElementById('m-desc').textContent = elm.desc;
-
-        modal.classList.add('active');
-    }
-
-    function closeModal() {
-        modal.classList.remove('active');
-    }
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
-
-    // 筛选逻辑
-    function filterElements() {
-        const term = document.getElementById('searchInput').value.toLowerCase();
-        const cat = document.getElementById('categoryFilter').value;
-        
-        document.querySelectorAll('.element').forEach(el => {
-            const matchSearch = el.dataset.search.includes(term);
-            const matchCat = cat === 'all' || el.dataset.cat === cat;
+        const els = document.querySelectorAll('.element');
+        els.forEach(el => {
+            const eCol = parseInt(el.dataset.col);
+            const eRow = parseInt(el.dataset.row);
             
-            if (matchSearch && matchCat) {
-                el.classList.remove('dimmed');
+            // 如果是同组或同周期，添加 active 类
+            if (eCol === col || eRow === row) {
+                el.classList.add('highlight-cross');
             } else {
-                el.classList.add('dimmed');
+                el.classList.remove('highlight-cross');
             }
         });
     }
 
-    document.getElementById('searchInput').addEventListener('input', filterElements);
-    document.getElementById('categoryFilter').addEventListener('change', filterElements);
+    function clearHighlight() {
+        document.querySelectorAll('.element').forEach(el => {
+            el.classList.remove('highlight-cross');
+        });
+    }
 
-    // 初始化
-    renderTable();
-    renderLegend();
+    function openModal(el) {
+        const color = `var(--c-${el.category})`;
+        
+        document.getElementById('m-symbol').textContent = el.symbol;
+        document.getElementById('m-symbol').style.color = color;
+        
+        document.getElementById('m-name').textContent = `${el.name}`;
+        document.getElementById('m-cat').textContent = categories[el.category];
+        document.getElementById('m-cat').style.color = color;
+        
+        document.getElementById('m-num').textContent = el.number;
+        document.getElementById('m-mass').textContent = el.mass;
+        document.getElementById('m-year').textContent = el.year;
+        
+        const stateMap = { 'solid': '固体', 'liquid': '液体', 'gas': '气体', 'unknown': '未知' };
+        document.getElementById('m-state').textContent = stateMap[el.state];
+        
+        // 弹窗描述背景色微调
+        const descBox = document.getElementById('m-desc');
+        descBox.textContent = el.desc;
+        descBox.style.borderLeftColor = color;
+
+        createAtomAnim(el.number, color);
+        modal.classList.add('active');
+    }
+
+    function createAtomAnim(num, color) {
+        const container = document.getElementById('atomVis');
+        container.querySelectorAll('.orbit').forEach(o => o.remove());
+
+        const shells = [2, 8, 18, 32, 32, 18, 8]; 
+        let remaining = num;
+        let size = 50;
+
+        for (let i = 0; i < shells.length; i++) {
+            if (remaining <= 0) break;
+            const count = Math.min(remaining, shells[i]);
+            remaining -= count;
+            
+            const orbit = document.createElement('div');
+            orbit.className = 'orbit';
+            orbit.style.width = `${size}px`;
+            orbit.style.height = `${size}px`;
+            orbit.style.animationDuration = `${4 + i}s`;
+            orbit.style.borderColor = color;
+            orbit.style.opacity = 0.6;
+
+            // 在轨道上添加电子
+            const electron = document.createElement('div');
+            electron.className = 'electron';
+            electron.style.background = color;
+            electron.style.color = color; //用于box-shadow
+            
+            orbit.appendChild(electron);
+            container.appendChild(orbit);
+            size += 35;
+        }
+    }
+
+    function closeModal() { modal.classList.remove('active'); }
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    function filter() {
+        const text = document.getElementById('searchInput').value.toLowerCase();
+        const cat = document.getElementById('categoryFilter').value;
+        
+        document.querySelectorAll('.element').forEach(el => {
+            const matchText = el.dataset.search.includes(text);
+            const matchCat = cat === 'all' || el.dataset.cat === cat;
+            
+            if (matchText && matchCat) {
+                el.style.display = 'flex'; // 显示
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'scale(1)';
+                }, 10);
+            } else {
+                el.style.opacity = '0.1';
+                el.style.transform = 'scale(0.8)';
+                // 不使用 display:none 以保持网格结构，仅视觉隐藏
+            }
+        });
+    }
+
+    function pickRandom() {
+        const randomEl = elements[Math.floor(Math.random() * elements.length)];
+        openModal(randomEl);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', filter);
+    document.getElementById('categoryFilter').addEventListener('change', filter);
+
+    render();
 
 </script>
 </body>
